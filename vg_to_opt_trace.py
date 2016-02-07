@@ -321,6 +321,6 @@ if __name__ == '__main__':
     # use sort_keys to get some sensible ordering on object keys
     s = json.dumps(final_res, indent=2, sort_keys=True)
     if options.js_varname:
-        print 'var ' + options.js_varname + ' = ' + s + ';'
+        print('var ' + options.js_varname + ' = ' + s + ';')
     else:
-        print s
+        print(s)
