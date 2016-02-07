@@ -35,6 +35,3 @@
 Makefile
 .deps
 .dirstamp
-
-# Valgrind config stuff
-valgrind-3.11.0/*
