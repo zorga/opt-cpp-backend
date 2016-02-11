@@ -57,8 +57,8 @@ all-traces: basic.trace \
 #	../valgrind-3.11.0/inst/bin/valgrind --tool=memcheck --source-filename=$<.c --trace-filename=$<.vgtrace ./$< || true
 
 %.vgtrace: %.c ../valgrind-3.11.0/inst/bin/valgrind
-	@gcc -ggdb -O0 -fno-omit-frame-pointer $< -o $(basename $@)
-	@../valgrind-3.11.0/inst/bin/valgrind --tool=memcheck --source-filename=$< --trace-filename=$(basename $<).vgtrace ./$(basename $<) || true
+	@gcc -ggdb -O0 -fno-omit-frame-pointer $< -o $(basename $@).o
+	@../valgrind-3.11.0/inst/bin/valgrind --tool=memcheck --source-filename=$< --trace-filename=$(basename $<).vgtrace ./$(basename $<).o || true
 
 %.trace: %.vgtrace ../vg_to_opt_trace.py
 	python2.7 ../vg_to_opt_trace.py --create_jsvar=trace $(basename $<) > $(basename $<).trace || true
