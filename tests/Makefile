@@ -52,13 +52,9 @@ all-traces: basic.trace \
 #%: %.c
 #	@gcc -ggdb -O0 -fno-omit-frame-pointer $< -o $@
 
-#%: %.cpp
-#	g++ -ggdb -O0 -fno-omit-frame-pointer $< -o $@
-
 # use '|| true' to always return success and keep 'make' running even on errors
 #%.vgtrace: % ../valgrind-3.11.0/inst/bin/valgrind
 #	../valgrind-3.11.0/inst/bin/valgrind --tool=memcheck --source-filename=$<.c --trace-filename=$<.vgtrace ./$< || true
-
 
 %.vgtrace: %.c ../valgrind-3.11.0/inst/bin/valgrind
 	@gcc -ggdb -O0 -fno-omit-frame-pointer $< -o $(basename $@)
@@ -68,4 +64,4 @@ all-traces: basic.trace \
 	python2.7 ../vg_to_opt_trace.py --create_jsvar=trace $(basename $<) > $(basename $<).trace || true
 
 clean:
-	rm -f *.trace *.vgtrace *.out
+	rm -f *.trace *.vgtrace *.out *.o
