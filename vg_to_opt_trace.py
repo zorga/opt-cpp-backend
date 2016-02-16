@@ -47,7 +47,7 @@ def process_record(lines):
     if not lines:
         return True # 'nil success case to keep the parser going
 
-    rec = '\n'.join(lines)
+    rec = '\n'.join(lines) # groups all the lines and separates them with a line-return
     try:
         obj = json.loads(rec)
     except ValueError:
@@ -64,6 +64,8 @@ def process_json_obj(obj):
     #print
 
     assert len(obj['stack']) > 0 # C programs always have a main at least!
+    # Here, the assert will throw an exception (error) if the condition after assert is false
+
     obj['stack'].reverse() # make the stack grow down to follow convention
     top_stack_entry = obj['stack'][-1]
 
@@ -95,6 +97,7 @@ def process_json_obj(obj):
         stack_obj['func_name'] = e['func_name']
         stack_obj['ordered_varnames'] = e['ordered_varnames']
         stack_obj['is_highlighted'] = e is top_stack_entry
+        # the stack_obj['is_highlighted'] is set to "True" if e and top_stack_entry are the same variable (address AND value)
 
         # hacky: does FP (the frame pointer) serve as a unique enough frame ID?
         # sometimes it's set to 0 :/
