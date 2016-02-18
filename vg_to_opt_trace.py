@@ -2,6 +2,7 @@
 # the OPT frontend can digest
 
 # Created 2015-10-04 by Philip Guo
+# Hacked by Nicolas Ooghe
 
 # pass in the $basename of a program. assumes that the Valgrind-produced
 # trace is $basename.vgtrace and the source file is $basename.{c,cpp}
@@ -46,20 +47,22 @@ def process_record(lines):
   False otherwise
   """
   if not lines:
-      return True # 'nil success case to keep the parser going
+    return True # 'nil success case to keep the parser going
 
   rec = '\n'.join(lines) # groups all the lines and separates them with a line-return
   try:
-      obj = json.loads(rec)
+    obj = json.loads(rec)
   except ValueError:
-      print >> sys.stderr, "Ugh, bad record!"
-      return False
+    print >> sys.stderr, "Ugh, bad record!"
+    return False
   x = process_json_obj(obj)
   all_execution_points.append(x)
   return True
 
-
 def process_json_obj(obj):
+  """
+  This function is used to make the executions points for the final trace
+  """
   #print '---'
   #pp.pprint(obj)
   #print
@@ -86,32 +89,32 @@ def process_json_obj(obj):
   ret['stdout'] = '' # TODO: handle this
 
   for g_var, g_val in obj['globals'].iteritems():
-      enc_globals[g_var] = encode_value(g_val, heap)
+    enc_globals[g_var] = encode_value(g_val, heap)
 
   for e in obj['stack']:
-      stack_obj = {}
-      stack.append(stack_obj)
+    stack_obj = {}
+    stack.append(stack_obj)
 
-      stack_obj['func_name'] = e['func_name']
-      stack_obj['ordered_varnames'] = e['ordered_varnames']
-      stack_obj['is_highlighted'] = e is top_stack_entry
-      # the stack_obj['is_highlighted'] is set to "True" if e and top_stack_entry are the same variable (address AND value)
+    stack_obj['func_name'] = e['func_name']
+    stack_obj['ordered_varnames'] = e['ordered_varnames']
+    stack_obj['is_highlighted'] = e is top_stack_entry
+    # the stack_obj['is_highlighted'] is set to "True" if e and top_stack_entry are the same variable (address AND value)
 
-      # hacky: does FP (the frame pointer) serve as a unique enough frame ID?
-      # sometimes it's set to 0 :/
-      stack_obj['frame_id'] = e['FP']
-      stack_obj['unique_hash'] = stack_obj['func_name'] + '_' + stack_obj['frame_id']
+    # hacky: does FP (the frame pointer) serve as a unique enough frame ID?
+    # sometimes it's set to 0 :/
+    stack_obj['frame_id'] = e['FP']
+    stack_obj['unique_hash'] = stack_obj['func_name'] + '_' + stack_obj['frame_id']
 
-      # unsupported
-      stack_obj['is_parent'] = False
-      stack_obj['is_zombie'] = False
-      stack_obj['parent_frame_id_list'] = []
+    # unsupported
+    stack_obj['is_parent'] = False
+    stack_obj['is_zombie'] = False
+    stack_obj['parent_frame_id_list'] = []
 
-      enc_locals = {}
-      stack_obj['encoded_locals'] = enc_locals
+    enc_locals = {}
+    stack_obj['encoded_locals'] = enc_locals
 
-      for local_var, local_val in e['locals'].iteritems():
-          enc_locals[local_var] = encode_value(local_val, heap)
+    for local_var, local_val in e['locals'].iteritems():
+      enc_locals[local_var] = encode_value(local_val, heap)
 
   #pp.pprint(ret)
   #print [(e['func_name'], e['frame_id']) for e in ret['stack_to_render']]
@@ -126,45 +129,45 @@ def encode_value(obj, heap):
   (with malloc : heap_blocks)
   """
   if obj['kind'] == 'base':
-      return ['C_DATA', obj['addr'], obj['type'], obj['val']]
+    return ['C_DATA', obj['addr'], obj['type'], obj['val']]
 
   elif obj['kind'] == 'pointer':
-      if 'deref_val' in obj:
-          encode_value(obj['deref_val'], heap) # update the heap
-      return ['C_DATA', obj['addr'], 'pointer', obj['val']]
+    if 'deref_val' in obj:
+      encode_value(obj['deref_val'], heap) # update the heap
+    return ['C_DATA', obj['addr'], 'pointer', obj['val']]
 
   elif obj['kind'] == 'struct':
-      ret = ['C_STRUCT', obj['addr'], obj['type']]
+    ret = ['C_STRUCT', obj['addr'], obj['type']]
 
-      # sort struct members by address so that they look ORDERED
-      members = obj['val'].items()
-      members.sort(key=lambda e: e[1]['addr'])
-      for k, v in members:
-          entry = [k, encode_value(v, heap)] # TODO: is an infinite loop possible here?
-          ret.append(entry)
-      return ret
+    # sort struct members by address so that they look ORDERED
+    members = obj['val'].items()
+    members.sort(key=lambda e: e[1]['addr'])
+    for k, v in members:
+      entry = [k, encode_value(v, heap)] # TODO: is an infinite loop possible here?
+      ret.append(entry)
+    return ret
 
   elif obj['kind'] == 'array':
-      ret = ['C_ARRAY', obj['addr']]
-      for e in obj['val']:
-          ret.append(encode_value(e, heap)) # TODO: is an infinite loop possible here?
-      return ret
+    ret = ['C_ARRAY', obj['addr']]
+    for e in obj['val']:
+        ret.append(encode_value(e, heap)) # TODO: is an infinite loop possible here?
+    return ret
 
   elif obj['kind'] == 'typedef':
-      # pass on the typedef type name into obj['val'], then recurse
-      obj['val']['type'] = obj['type']
-      return encode_value(obj['val'], heap)
+    # pass on the typedef type name into obj['val'], then recurse
+    obj['val']['type'] = obj['type']
+    return encode_value(obj['val'], heap)
 
   elif obj['kind'] == 'heap_block':
-      assert obj['addr'] not in heap
-      new_elt = ['C_ARRAY', obj['addr']]
-      for e in obj['val']:
-          new_elt.append(encode_value(e, heap)) # TODO: is an infinite loop possible here?
-      heap[obj['addr']] = new_elt
-      # TODO: what about heap-to-heap pointers?
+    assert obj['addr'] not in heap
+    new_elt = ['C_ARRAY', obj['addr']]
+    for e in obj['val']:
+      new_elt.append(encode_value(e, heap)) # TODO: is an infinite loop possible here?
+    heap[obj['addr']] = new_elt
+    # TODO: what about heap-to-heap pointers?
 
   else:
-      assert False
+    assert False
 
 def main():
   """
@@ -181,41 +184,41 @@ def main():
   success = True
 
   for line in open(basename + '.vgtrace'):
-      line = line.strip()
-      if line == RECORD_SEP:
-          success = process_record(cur_record_lines)
-          if not success:
-              break
-          cur_record_lines = []
-      else:
-          cur_record_lines.append(line)
+    line = line.strip()
+    if line == RECORD_SEP:
+      success = process_record(cur_record_lines)
+      if not success:
+        break
+        cur_record_lines = []
+    else:
+      cur_record_lines.append(line)
 
   # only parse final record if we've been successful so far; i.e., die
   # on the first failed parse
   if success:
-      success = process_record(cur_record_lines)
+    success = process_record(cur_record_lines)
 
   # now do some filtering action based on heuristics
   filtered_execution_points = []
 
   for pt in all_execution_points:
-      # any execution point with a 0x0 frame pointer is bogus
-      frame_ids = [e['frame_id'] for e in pt['stack_to_render']]
-      func_names = [e['func_name'] for e in pt['stack_to_render']]
-      if '0x0' in frame_ids:
-          continue
+    # any execution point with a 0x0 frame pointer is bogus
+    frame_ids = [e['frame_id'] for e in pt['stack_to_render']]
+    func_names = [e['func_name'] for e in pt['stack_to_render']]
+    if '0x0' in frame_ids:
+      continue
 
-      # any point with DUPLICATE frame_ids is bogus, since it means
-      # that the frame_id of some frame hasn't yet been updated
-      if len(set(frame_ids)) < len(frame_ids):
-          continue
+    # any point with DUPLICATE frame_ids is bogus, since it means
+    # that the frame_id of some frame hasn't yet been updated
+    if len(set(frame_ids)) < len(frame_ids):
+      continue
 
-      # any point with a weird '???' function name is bogus
-      # but we shouldn't have any more by now
-      assert '???' not in func_names
+    # any point with a weird '???' function name is bogus
+    # but we shouldn't have any more by now
+    assert '???' not in func_names
 
-      #print func_names, frame_ids
-      filtered_execution_points.append(pt)
+    #print func_names, frame_ids
+    filtered_execution_points.append(pt)
 
 
   final_execution_points = []
@@ -236,36 +239,36 @@ def main():
       # where the middle entry should be FILTERED OUT since it's
       # missing 'main' for some reason
       for prev, cur in zip(filtered_execution_points, filtered_execution_points[1:]):
-          prev_frame_ids = [e['frame_id'] for e in prev['stack_to_render']]
-          cur_frame_ids = [e['frame_id'] for e in cur['stack_to_render']]
+        prev_frame_ids = [e['frame_id'] for e in prev['stack_to_render']]
+        cur_frame_ids = [e['frame_id'] for e in cur['stack_to_render']]
 
-          # identical, we're good to go
-          if prev_frame_ids == cur_frame_ids:
-              final_execution_points.append(cur)
-          elif len(prev_frame_ids) < len(cur_frame_ids):
-              # cur_frame_ids is prev_frame_ids + 1 extra element on
-              # the end -> function call
-              if prev_frame_ids == cur_frame_ids[:-1]:
-                  final_execution_points.append(cur)
-          elif len(prev_frame_ids) > len(cur_frame_ids):
-              # cur_frame_ids is prev_frame_ids MINUS the last element on
-              # the end -> function return
-              if cur_frame_ids == prev_frame_ids[:-1]:
-                  final_execution_points.append(cur)
+        # identical, we're good to go
+        if prev_frame_ids == cur_frame_ids:
+          final_execution_points.append(cur)
+        elif len(prev_frame_ids) < len(cur_frame_ids):
+          # cur_frame_ids is prev_frame_ids + 1 extra element on
+          # the end -> function call
+          if prev_frame_ids == cur_frame_ids[:-1]:
+            final_execution_points.append(cur)
+        elif len(prev_frame_ids) > len(cur_frame_ids):
+          # cur_frame_ids is prev_frame_ids MINUS the last element on
+          # the end -> function return
+          if cur_frame_ids == prev_frame_ids[:-1]:
+            final_execution_points.append(cur)
 
       assert len(final_execution_points) <= len(filtered_execution_points)
 
       # now mark 'call' and' 'return' events via the same heuristic as above
       for prev, cur in zip(final_execution_points, final_execution_points[1:]):
-          prev_frame_ids = [e['frame_id'] for e in prev['stack_to_render']]
-          cur_frame_ids = [e['frame_id'] for e in cur['stack_to_render']]
+        prev_frame_ids = [e['frame_id'] for e in prev['stack_to_render']]
+        cur_frame_ids = [e['frame_id'] for e in cur['stack_to_render']]
 
-          if len(prev_frame_ids) < len(cur_frame_ids):
-              if prev_frame_ids == cur_frame_ids[:-1]:
-                  cur['event'] = 'call'
-          elif len(prev_frame_ids) > len(cur_frame_ids):
-              if cur_frame_ids == prev_frame_ids[:-1]:
-                  prev['event'] = 'return'
+        if len(prev_frame_ids) < len(cur_frame_ids):
+          if prev_frame_ids == cur_frame_ids[:-1]:
+            cur['event'] = 'call'
+        elif len(prev_frame_ids) > len(cur_frame_ids):
+          if cur_frame_ids == prev_frame_ids[:-1]:
+            prev['event'] = 'return'
 
       # super hack! what should we do about the LAST entry in the
       # trace? if all went well with parsing all entries, then make it
@@ -273,37 +276,37 @@ def main():
       # something went wrong (!success), then make it an 'exception'
       # with a cryptic message
       if success:
-          final_execution_points[-1]['event'] = 'return'
+        final_execution_points[-1]['event'] = 'return'
       else:
-          final_execution_points[-1]['event'] = 'exception'
-          final_execution_points[-1]['exception_msg'] = 'Oh noes, your code just crashed!\nSend bug reports to philip@pgbovine.net'
+        final_execution_points[-1]['event'] = 'exception'
+        final_execution_points[-1]['exception_msg'] = 'Oh noes, your code just crashed!\nSend bug reports to philip@pgbovine.net'
 
   # only keep the FIRST 'step_line' event for any given line, to match what
   # a line-level debugger would do
   if ONLY_ONE_REC_PER_LINE:
-      tmp = []
-      prev_event = None
-      prev_line = None
-      prev_frame_ids = None
+    tmp = []
+    prev_event = None
+    prev_line = None
+    prev_frame_ids = None
 
-      for elt in final_execution_points:
-          skip = False
-          cur_event = elt['event']
-          cur_line = elt['line']
-          cur_frame_ids = [e['frame_id'] for e in elt['stack_to_render']]
-          if prev_frame_ids:
-              if cur_event == prev_event == 'step_line':
-                  if cur_line == prev_line and cur_frame_ids == prev_frame_ids:
-                      skip = True
+    for elt in final_execution_points:
+      skip = False
+      cur_event = elt['event']
+      cur_line = elt['line']
+      cur_frame_ids = [e['frame_id'] for e in elt['stack_to_render']]
+      if prev_frame_ids:
+        if cur_event == prev_event == 'step_line':
+          if cur_line == prev_line and cur_frame_ids == prev_frame_ids:
+            skip = True
 
-          if not skip:
-              tmp.append(elt)
+      if not skip:
+        tmp.append(elt)
 
-          prev_event = cur_event
-          prev_line = cur_line
-          prev_frame_ids = cur_frame_ids
+      prev_event = cur_event
+      prev_line = cur_line
+      prev_frame_ids = cur_frame_ids
 
-      final_execution_points = tmp # the ole' switcheroo
+    final_execution_points = tmp # the ole' switcheroo
 
 
   '''
@@ -316,9 +319,9 @@ def main():
   '''
 
   if os.path.isfile(basename + '.c'):
-      cod = open(basename + '.c').read()
+    cod = open(basename + '.c').read()
   else:
-      cod = open(basename + '.cpp').read()
+    cod = open(basename + '.cpp').read()
 
   # produce the final trace, voila!
   final_res = {'code': cod, 'trace': final_execution_points}
@@ -326,9 +329,9 @@ def main():
   # use sort_keys to get some sensible ordering on object keys
   s = json.dumps(final_res, indent=2, sort_keys=True)
   if options.js_varname:
-      print('var ' + options.js_varname + ' = ' + s + ';')
+    print('var ' + options.js_varname + ' = ' + s + ';')
   else:
-      print(s)
+    print(s)
 
 if __name__ == '__main__':
   main()
