@@ -150,7 +150,7 @@ def encode_value(obj, heap):
   elif obj['kind'] == 'array':
     ret = ['C_ARRAY', obj['addr']]
     for e in obj['val']:
-        ret.append(encode_value(e, heap)) # TODO: is an infinite loop possible here?
+      ret.append(encode_value(e, heap)) # TODO: is an infinite loop possible here?
     return ret
 
   elif obj['kind'] == 'typedef':
@@ -189,7 +189,7 @@ def main():
       success = process_record(cur_record_lines)
       if not success:
         break
-        cur_record_lines = []
+      cur_record_lines = []
     else:
       cur_record_lines.append(line)
 
@@ -223,63 +223,63 @@ def main():
 
   final_execution_points = []
   if filtered_execution_points:
-      final_execution_points.append(filtered_execution_points[0])
-      # finally, make sure that each successive entry contains
-      # frame_ids that are either identical to the previous one, or
-      # differ by the addition or subtraction of one element at the
-      # end, which represents a function call or return, respectively.
-      # there are weird cases like:
-      #
-      # [u'main'] [u'0xFFEFFFE30']
-      # [u'main'] [u'0xFFEFFFE30']
-      # [u'foo'] [u'0xFFEFFFDC0'] <- bogus
-      # [u'main', u'foo'] [u'0xFFEFFFE30', u'0xFFEFFFDC0']
-      # [u'main', u'foo'] [u'0xFFEFFFE30', u'0xFFEFFFDC0']
-      #
-      # where the middle entry should be FILTERED OUT since it's
-      # missing 'main' for some reason
-      for prev, cur in zip(filtered_execution_points, filtered_execution_points[1:]):
-        prev_frame_ids = [e['frame_id'] for e in prev['stack_to_render']]
-        cur_frame_ids = [e['frame_id'] for e in cur['stack_to_render']]
+    final_execution_points.append(filtered_execution_points[0])
+    # finally, make sure that each successive entry contains
+    # frame_ids that are either identical to the previous one, or
+    # differ by the addition or subtraction of one element at the
+    # end, which represents a function call or return, respectively.
+    # there are weird cases like:
+    #
+    # [u'main'] [u'0xFFEFFFE30']
+    # [u'main'] [u'0xFFEFFFE30']
+    # [u'foo'] [u'0xFFEFFFDC0'] <- bogus
+    # [u'main', u'foo'] [u'0xFFEFFFE30', u'0xFFEFFFDC0']
+    # [u'main', u'foo'] [u'0xFFEFFFE30', u'0xFFEFFFDC0']
+    #
+    # where the middle entry should be FILTERED OUT since it's
+    # missing 'main' for some reason
+    for prev, cur in zip(filtered_execution_points, filtered_execution_points[1:]):
+      prev_frame_ids = [e['frame_id'] for e in prev['stack_to_render']]
+      cur_frame_ids = [e['frame_id'] for e in cur['stack_to_render']]
 
-        # identical, we're good to go
-        if prev_frame_ids == cur_frame_ids:
+      # identical, we're good to go
+      if prev_frame_ids == cur_frame_ids:
+        final_execution_points.append(cur)
+      elif len(prev_frame_ids) < len(cur_frame_ids):
+        # cur_frame_ids is prev_frame_ids + 1 extra element on
+        # the end -> function call
+        if prev_frame_ids == cur_frame_ids[:-1]:
           final_execution_points.append(cur)
-        elif len(prev_frame_ids) < len(cur_frame_ids):
-          # cur_frame_ids is prev_frame_ids + 1 extra element on
-          # the end -> function call
-          if prev_frame_ids == cur_frame_ids[:-1]:
-            final_execution_points.append(cur)
-        elif len(prev_frame_ids) > len(cur_frame_ids):
-          # cur_frame_ids is prev_frame_ids MINUS the last element on
-          # the end -> function return
-          if cur_frame_ids == prev_frame_ids[:-1]:
-            final_execution_points.append(cur)
+      elif len(prev_frame_ids) > len(cur_frame_ids):
+        # cur_frame_ids is prev_frame_ids MINUS the last element on
+        # the end -> function return
+        if cur_frame_ids == prev_frame_ids[:-1]:
+          final_execution_points.append(cur)
 
-      assert len(final_execution_points) <= len(filtered_execution_points)
+    assert len(final_execution_points) <= len(filtered_execution_points)
 
       # now mark 'call' and' 'return' events via the same heuristic as above
-      for prev, cur in zip(final_execution_points, final_execution_points[1:]):
-        prev_frame_ids = [e['frame_id'] for e in prev['stack_to_render']]
-        cur_frame_ids = [e['frame_id'] for e in cur['stack_to_render']]
+    for prev, cur in zip(final_execution_points, final_execution_points[1:]):
+      prev_frame_ids = [e['frame_id'] for e in prev['stack_to_render']]
+      cur_frame_ids = [e['frame_id'] for e in cur['stack_to_render']]
 
-        if len(prev_frame_ids) < len(cur_frame_ids):
-          if prev_frame_ids == cur_frame_ids[:-1]:
-            cur['event'] = 'call'
-        elif len(prev_frame_ids) > len(cur_frame_ids):
-          if cur_frame_ids == prev_frame_ids[:-1]:
-            prev['event'] = 'return'
+      if len(prev_frame_ids) < len(cur_frame_ids):
+        if prev_frame_ids == cur_frame_ids[:-1]:
+          cur['event'] = 'call'
+      elif len(prev_frame_ids) > len(cur_frame_ids):
+        if cur_frame_ids == prev_frame_ids[:-1]:
+          prev['event'] = 'return'
 
-      # super hack! what should we do about the LAST entry in the
-      # trace? if all went well with parsing all entries, then make it
-      # a 'return' (presumably from main) for proper closure. if
-      # something went wrong (!success), then make it an 'exception'
-      # with a cryptic message
-      if success:
-        final_execution_points[-1]['event'] = 'return'
-      else:
-        final_execution_points[-1]['event'] = 'exception'
-        final_execution_points[-1]['exception_msg'] = 'Oh noes, your code just crashed!\nSend bug reports to philip@pgbovine.net'
+    # super hack! what should we do about the LAST entry in the
+    # trace? if all went well with parsing all entries, then make it
+    # a 'return' (presumably from main) for proper closure. if
+    # something went wrong (!success), then make it an 'exception'
+    # with a cryptic message
+    if success:
+      final_execution_points[-1]['event'] = 'return'
+    else:
+      final_execution_points[-1]['event'] = 'exception'
+      final_execution_points[-1]['exception_msg'] = 'Oh noes, your code just crashed!\nSend bug reports to philip@pgbovine.net'
 
   # only keep the FIRST 'step_line' event for any given line, to match what
   # a line-level debugger would do
