@@ -34,20 +34,8 @@ all-traces: basic.trace \
 						fjalar-StructPtrTest.trace \
 						fjalar-TrivialTest.trace \
 						fjalar-TypedefTest.trace \
-						cpp-array-struct-test.trace \
-						cpp-class-pointers.trace \
-						cpp-first.trace \
-						cpp-object-array.trace \
-						cpp-virtual-method.trace \
-						cpp-class-basic.trace \
-						cpp-consts.trace \
-						cpp-function-types.trace \
-						cpp-pass-by-ref.trace \
-						cpp-class-date.trace \
-						cpp-exception.trace \
-						cpp-inheritance.trace \
-						cpp-stack-inline.trace
-
+            ex1.trace \
+            reverse_llist.trace \
 
 #%: %.c
 #	@gcc -ggdb -O0 -fno-omit-frame-pointer $< -o $@
