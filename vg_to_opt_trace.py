@@ -196,6 +196,7 @@ def main():
   # only parse final record if we've been successful so far; i.e., die
   # on the first failed parse
   if success:
+    print >> sys.stderr, "process_record : SUCCESS"
     success = process_record(cur_record_lines)
 
   # now do some filtering action based on heuristics
@@ -210,6 +211,7 @@ def main():
 
     # any point with DUPLICATE frame_ids is bogus, since it means
     # that the frame_id of some frame hasn't yet been updated
+    # Myself : the "set()" function removes the duplicates
     if len(set(frame_ids)) < len(frame_ids):
       continue
 
@@ -258,7 +260,7 @@ def main():
 
     assert len(final_execution_points) <= len(filtered_execution_points)
 
-      # now mark 'call' and' 'return' events via the same heuristic as above
+    # now mark 'call' and' 'return' events via the same heuristic as above
     for prev, cur in zip(final_execution_points, final_execution_points[1:]):
       prev_frame_ids = [e['frame_id'] for e in prev['stack_to_render']]
       cur_frame_ids = [e['frame_id'] for e in cur['stack_to_render']]
