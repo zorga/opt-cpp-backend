@@ -196,7 +196,6 @@ def main():
   # only parse final record if we've been successful so far; i.e., die
   # on the first failed parse
   if success:
-    print >> sys.stderr, "process_record : SUCCESS"
     success = process_record(cur_record_lines)
 
   # now do some filtering action based on heuristics
