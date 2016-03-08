@@ -2,9 +2,8 @@
 
 int main(int argc, char** argv)
 {
-  int* pTest = malloc(sizeof(int));
-  *pTest = 4;
-  //free(pTest);
+  char char_str[] = "Bob";
+  
   return 0;
 }
 

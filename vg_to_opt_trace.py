@@ -165,6 +165,8 @@ def encode_value(obj, heap):
       new_elt.append(encode_value(e, heap)) # TODO: is an infinite loop possible here?
     heap[obj['addr']] = new_elt
     # TODO: what about heap-to-heap pointers?
+    # TODO: what about the unions ?
+    # TODO: what about the void type ?
 
   else:
     assert False

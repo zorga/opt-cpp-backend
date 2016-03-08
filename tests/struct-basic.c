@@ -6,8 +6,8 @@
 struct Account {
    int account_number;
    double balance;
-   char *first_name;
-   char *last_name;
+   char* first_name;
+   char* last_name;
 };
 
 // typedef version

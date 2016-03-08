@@ -20,6 +20,8 @@ int main() {
   heap_str[2] = 'b';
   heap_str[3] = '\0';
 
+  char char_str[] = "Pip";
+
   arrayParams(stack_shorts, heap_str);
   return 0;
 }
