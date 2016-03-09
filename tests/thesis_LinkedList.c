@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "Thesis_LinkedList.h"
+#include "thesis_LinkedList.h"
 
 int main (int argc, char** argv)
 {
