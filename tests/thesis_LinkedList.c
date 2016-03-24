@@ -2,13 +2,32 @@
 #include <stdlib.h>
 #include "thesis_LinkedList.h"
 
-#define PRINT_ADDR_PTR
+#define PRINT_PTR (1)
 
 int main (int argc, char** argv)
 {
   node_t* head = buildOneTwoThree ();
+  if (PRINT_PTR)
+  {
+    print_pointers (head);
+  }
   free_list (&head);
   return 0;
+}
+
+void print_pointers (node_t* head)
+//prints the addresses of the nodes of the list pointed by head
+{
+  int i = 0;
+  printf ("head (node_%d) : %p\n", i, head);
+  i++;
+  node_t* curr = head;
+  while (curr->next)
+  {
+    printf ("node_%d : %p\n", i,  curr->next);
+    curr = curr->next;
+    i++;
+  }
 }
 
 int length (node_t* head)
