@@ -2,11 +2,25 @@
 #include <stdlib.h>
 #include "thesis_LinkedList.h"
 
+#define PRINT_ADDR_PTR
+
 int main (int argc, char** argv)
 {
   node_t* head = buildOneTwoThree ();
   free_list (&head);
   return 0;
+}
+
+int length (node_t* head)
+{
+  int len = 0;
+  node_t* curr = head;
+  while (curr->next)
+  {
+    len++;
+    curr = curr->next;
+  }
+  return len;
 }
 
 void push (node_t** headRef, int newData)

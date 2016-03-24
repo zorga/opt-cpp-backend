@@ -26,5 +26,5 @@ void free_list2 (node_t* head);
 
 node_t* init (int initData);
 
-#endif /* _LinkedList_H_ */
+#endif /* _Thesis_LinkedList_H_ */
 
