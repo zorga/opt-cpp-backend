@@ -10,7 +10,7 @@ struct node {
 
 void basicsCaller ();
 
-void print_pointers (node_t* head);
+void print_list_info (node_t* head);
 
 int length (node_t* head);
 

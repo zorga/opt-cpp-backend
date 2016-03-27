@@ -1,38 +1,29 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "thesis_LinkedList.h"
+#include "thesis_LinkedList.h" 
 
-#define PRINT_PTR (1)
+#define PRINT_PTR (0)
 
 int main (int argc, char** argv)
 {
-  node_t* head = buildOneTwoThree ();
+  node_t* head = init(4);
+  push(&head, 5);
   if (PRINT_PTR)
   {
-    print_pointers (head);
+    printList (head);
   }
   free_list (&head);
   return 0;
 }
 
-void print_pointers (node_t* head)
-//prints the addresses of the nodes of the list pointed by head
-{
-  int i = 0;
-  printf ("head (node_%d) : %p\n", i, head);
-  i++;
-  node_t* curr = head;
-  while (curr->next)
-  {
-    printf ("node_%d : %p\n", i,  curr->next);
-    curr = curr->next;
-    i++;
-  }
-}
-
 int length (node_t* head)
+/* Computes the length of the list whose head is pointed by 'head'
+   returns -1 in case of error */
 {
-  int len = 0;
+  if (!head)
+    return -1;
+
+  int len = 1;
   node_t* curr = head;
   while (curr->next)
   {
@@ -71,9 +62,13 @@ void printList (node_t* head)
 {
   int count = 0;
   node_t* current = head;
+  printf ("List info : \n");
   for (current = head; current != NULL; current = current->next)
   {
-    printf ("%d\n", current->data);
+    if (!current->next)
+      printf("Address : %p, Data : %d (head)\n", current, current->data);
+    else
+      printf ("Address : %p, Data : %d\n", current, current->data);
     count++;
   }
   printf ("Length of the list : %d\n", count);
