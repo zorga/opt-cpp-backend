@@ -7,21 +7,18 @@
 int main (int argc, char** argv)
 /* Put tests on list here */
 {
-  node_t* head = buildWithLocalRef ();
+  //node_t* head = buildWithLocalRef (4);
+  node_t* head2 = NULL; 
+  node_t* head = NULL;
+  //node_t* head = buildOneTwoThree ();
   // LIST BEFORE TESTS :
   if (PRINT_PTR)
   {
     printList (head);
+    printList (head2);
   }
   //TESTS :
-  int i = 0;
-  int j = 9;
-  printf ("Data of the %dth node of the list : %d\n", i, GetNth(head, i));
-  printf ("Data of the %dth node of the list : %d\n", j, GetNth(head, j));
-  InsertNth (&head, 9, 42);
-  InsertNth (&head, 10, 43);
-  InsertNth(&head, 43, 98);
-  InsertNth(&head, 12, 666666666);
+  Append (&head, &head2);
   //PRINT LIST :
   if (PRINT_PTR)
   {
@@ -32,12 +29,74 @@ int main (int argc, char** argv)
   return 0;
 }
 
+void Append (node_t** aHead, node_t** bHead)
+{
+  if (!(*aHead))
+    *aHead = *bHead;
+
+  else
+  {
+    node_t* current = *aHead;
+
+    while (current->next)
+      current = current->next;
+
+    current->next = *bHead;
+    *bHead = NULL;
+  }
+}
+
+int InsertSort (node_t** headRef)
+  /* takes the list pointed by *headRef and sorts it in increasing order
+     returns 0 if success, -1 otherwise */
+{
+  node_t* curr = *headRef;
+  node_t* result = NULL; 
+  node_t* next = NULL;
+
+  if (!curr)
+  {
+    fprintf (stderr, "InsertSort : *headRef not initialized\n");
+    return -1;
+  }
+  while (curr)
+  {
+    next = curr->next;
+    SortedInsert (&result, curr);
+    curr = next;
+  }
+  *headRef = result;
+
+  return 0;
+}
+
+int SortedInsert (node_t** headRef, node_t* newNode)
+  /* *headRef points to the head of a list sorted in increasing order.
+     inserts newNode into the correct position in the list (in a way that keep
+     the ordering of the list)
+     if *headRef is NULL, makes newNode point to it and makes *headRef points to
+     newNode so the result is a list containing only newNode */
+{
+  node_t dummy;
+  node_t* curr = &dummy;
+  dummy.next = *headRef;
+
+  while (curr->next && curr->next->data < newNode->data)
+    curr = curr->next;
+
+  newNode->next = curr->next;
+  curr->next = newNode;
+  *headRef = dummy.next;
+
+  return 0; 
+}
+
 int InsertNth(node_t** head, int index, int data)
-/* insert a new node in the list whose head is pointed by *head at index 
-   and with 'data' as data field
-   returns 0 if succees
-   returns -1 in case of failure
-*/
+  /* insert a new node in the list whose head is pointed by *head at index 
+     and with 'data' as data field
+     returns 0 if succees
+     returns -1 in case of failure
+   */
 {
   node_t* curr = *head;
 
@@ -65,10 +124,10 @@ int InsertNth(node_t** head, int index, int data)
 }
 
 int GetNth (node_t* head, int i)
-/* returns the data contained in the ith node of the list whose head is pointed
-   by the head pointer.
-   the nodes are in the range [0..length (head) -1]
-   returns -1 in case of error */
+  /* returns the data contained in the ith node of the list whose head is pointed
+     by the head pointer.
+     the nodes are in the range [0..length (head) -1]
+     returns -1 in case of error */
 {
   if (!head)
     return -1;
@@ -79,13 +138,13 @@ int GetNth (node_t* head, int i)
   node_t* curr = head;
   for (int j = 0; j < i; j++)
     curr = curr -> next;
-  
+
   return (curr->data);
 }
 
 int pop (node_t** headRef)
-/* deletes the head node of the list and returns its data
-   returns -1 in case of error */
+  /* deletes the head node of the list and returns its data
+     returns -1 in case of error */
 {
   node_t* head = *headRef;
   if (!head)
@@ -94,14 +153,14 @@ int pop (node_t** headRef)
   int ret = head->data;
   *headRef = head->next;
   free (head);
-    head = NULL;
+  head = NULL;
 
   return ret;
 }
-  
+
 int length (node_t* head)
-/* returns the length of the list whose head node is pointed by 'head'
-   returns -1 in case of error */
+  /* returns the length of the list whose head node is pointed by 'head'
+     returns -1 in case of error */
 {
   if (!head)
     return -1;
@@ -117,9 +176,9 @@ int length (node_t* head)
 }
 
 int push (node_t** headRef, int newData)
-/* insert a new node at the beginning of the list with 'newData' as data 
-   returns 0 if the function succeeds 
-   returns -1 on failure */
+  /* insert a new node at the beginning of the list with 'newData' as data 
+     returns 0 if the function succeeds 
+     returns -1 on failure */
 {
   node_t* newHead = (node_t*) malloc (sizeof (node_t)); 
   if (!newHead)
@@ -133,7 +192,7 @@ int push (node_t** headRef, int newData)
 }
 
 node_t* init (int initData)
-/* Initialize a new list with 'initData' as the first node dada */
+  /* Initialize a new list with 'initData' as the first node dada */
 {
   node_t* head = (node_t*) malloc (sizeof (node_t));
   head->next = NULL;
@@ -143,19 +202,25 @@ node_t* init (int initData)
 
 node_t* buildOneTwoThree ()
 {
-  node_t* head = init (0);
-  push(&head, 1);
-  push(&head, 2);
+  node_t* head = init (97777778);
+  push(&head, 777777);
+  push(&head, 83293);
+  push(&head, 8989);
+  push(&head, 43);
   push(&head, 3);
   return head;
 }
 
-void printList (node_t* head)
-/* prints the informations of the list whose head node is pointed by head
-   it prints the address of the nodes along with their data */
+int printList (node_t* head)
+  /* prints the informations of the list whose head node is pointed by head
+     it prints the address of the nodes along with their data
+     returns 0 if success, -1 otherwise; */
 {
   if (!head)
-    perror("unitialized list");
+  {
+    fprintf (stderr, "printList : NULL pointer error\n");
+    return -1;
+  }
 
   int count = 0;
   node_t* current = head;
@@ -166,27 +231,37 @@ void printList (node_t* head)
     count++;
   }
   printf ("Length of the list : %d\n", count);
+  return 0;
 }
 
-node_t* buildWithLocalRef ()
+node_t* buildWithLocalRef (int a)
 {
   /* head pointer set to NULL because it will be the last node at the end
-  of the function call */
+     of the function call */
   node_t* head = NULL;
   node_t** lastPtrRef = &head; // Start out pointing to the head pointer
 
-  for (int i=0; i<10; i++)
+  for (int i=0; i<5; i++)
   {
-    srand (i*4);
-    push (lastPtrRef, rand());
+    srand (a*i*4);
+    push (lastPtrRef, (rand() % 1000));
+    //push (lastPtrRef, i);
     lastPtrRef = &((*lastPtrRef)->next); // Advance to point to the new last pointer
   }
   return head;
 }
-    
-void free_list (node_t** head)
-// Version using a reference pointer to the head node
+
+int free_list (node_t** head)
+  /* delete and free all the memory used by the list
+     using a reference pointer to the head of the list
+     returns 0 if success, -1 otherwise */
 {
+  if (!(*head))
+  {
+    fprintf(stderr, "free_list : NULL pointer error\n");
+    return -1;
+  }
+
   while (*head != NULL)
   {
     node_t* oldPtr = *head;
@@ -196,11 +271,20 @@ void free_list (node_t** head)
   }
   free (*head);
   *head = NULL;
+  return 0;
 }
 
-void free_list2 (node_t* head)
-// Version using a pointer to the head node
+int free_list2 (node_t* head)
+  /* delete and free all the memory used by the list
+     using a pointer to the head of the list
+     returns 0 if success, -1 otherwise */
 {
+  if (!head)
+  {
+    fprintf (stderr, "free_list : NULL pointer error\n");
+    return -1;
+  }
+
   while (head != NULL)
   {
     node_t* oldPtr = head;
@@ -210,6 +294,7 @@ void free_list2 (node_t* head)
   }
   free (head);
   head = NULL;
+  return 0;
 }
 
 

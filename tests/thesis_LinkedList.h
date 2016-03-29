@@ -8,6 +8,10 @@ struct node {
   node_t* next;
 };
 
+int InsertSort (node_t** headRef);
+
+int SortedInsert (node_t** headRef, node_t* newNode);
+
 int InsertNth (node_t** head, int index, int data);
 
 int GetNth (node_t* head, int i);
@@ -16,21 +20,21 @@ int pop (node_t** head);
 
 void basicsCaller ();
 
-void print_list_info (node_t* head);
-
 int length (node_t* head);
 
 int push (node_t** headRef, int newData);
 
 node_t* buildOneTwoThree ();
 
-void printList (node_t* head);
+int printList (node_t* head);
 
-node_t* buildWithLocalRef ();
+node_t* buildWithLocalRef (int a);
 
-void free_list (node_t** head);
+void Append (node_t** aHead, node_t** bHead);
 
-void free_list2 (node_t* head);
+int free_list (node_t** head);
+
+int free_list2 (node_t* head);
 
 node_t* init (int initData);
 
