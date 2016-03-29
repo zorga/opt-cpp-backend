@@ -8,6 +8,8 @@ struct node {
   node_t* next;
 };
 
+void FrontBackSplit (node_t* source, node_t** frontRef, node_t** backRef);
+
 int InsertSort (node_t** headRef);
 
 int SortedInsert (node_t** headRef, node_t* newNode);

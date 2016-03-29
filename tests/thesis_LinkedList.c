@@ -7,26 +7,52 @@
 int main (int argc, char** argv)
 /* Put tests on list here */
 {
-  //node_t* head = buildWithLocalRef (4);
-  node_t* head2 = NULL; 
-  node_t* head = NULL;
-  //node_t* head = buildOneTwoThree ();
+  node_t* head = buildWithLocalRef (4);
+  node_t* front = NULL;
+  node_t* back = NULL;
   // LIST BEFORE TESTS :
   if (PRINT_PTR)
   {
     printList (head);
-    printList (head2);
   }
   //TESTS :
-  Append (&head, &head2);
+  FrontBackSplit (head, &front, &back);
   //PRINT LIST :
   if (PRINT_PTR)
   {
-    printList (head);
+    printList (front);
+    printList (back);
   }
 
-  free_list (&head);
+  free_list (&front);
+  free_list (&back);
   return 0;
+}
+
+void FrontBackSplit (node_t* source, node_t** frontRef, node_t** backRef)
+{
+  node_t* slowPtr;
+  node_t* fastPtr;
+  if (!source || !(source->next))
+  {
+    *frontRef = source;
+    *backRef = NULL;
+  }
+  else
+  {
+    slowPtr = source;
+    fastPtr = source->next;
+    while (fastPtr)
+    {
+      fastPtr = fastPtr->next;
+      if (fastPtr)
+        slowPtr = slowPtr->next;
+        fastPtr = fastPtr->next;
+    }
+    *frontRef = source;
+    *backRef = slowPtr->next;
+    slowPtr->next = NULL;
+  }
 }
 
 void Append (node_t** aHead, node_t** bHead)
