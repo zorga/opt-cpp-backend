@@ -7,29 +7,66 @@
 int main (int argc, char** argv)
 /* Put tests on list here */
 {
-  node_t* head = buildWithLocalRef (4);
-  node_t* front = NULL;
-  node_t* back = NULL;
+  node_t* head = init(42);
+  push (&head, 9898);
+  push (&head, 9898);
+  push (&head, 839238);
+  push (&head, 839238);
+  push (&head, 78);
+  push (&head, 5);
+  push (&head, 5);
+  push (&head, 600);
+
   // LIST BEFORE TESTS :
   if (PRINT_PTR)
   {
     printList (head);
   }
   //TESTS :
-  FrontBackSplit (head, &front, &back);
+  InsertSort (&head);
   //PRINT LIST :
   if (PRINT_PTR)
   {
-    printList (front);
-    printList (back);
+    printList (head);
+  }
+  RemoveDuplicates (head);
+  if (PRINT_PTR)
+  {
+    printList (head);
   }
 
-  free_list (&front);
-  free_list (&back);
+  free_list (&head);
   return 0;
 }
 
+void RemoveDuplicates (node_t* head)
+/* the list pointed by 'head' is a list sorted in increasing order
+   this function deletes the duplicate nodes from that list */
+{
+  node_t* current = head;
+  if (!current)
+  {
+    fprintf (stderr, "RemoveDuplicates : uninitialized list\n");
+    return;
+  }
+
+  while (current->next)
+  {
+    if (current->data == current->next->data)
+    {
+      node_t* nextNext = current->next->next;
+      free (current->next);
+      current->next = nextNext;
+    }
+    else
+      current = current->next;
+  }
+}
+
 void FrontBackSplit (node_t* source, node_t** frontRef, node_t** backRef)
+/* Slip the list pointed by 'source' into two lists
+   the first half of the list is pointed by *frontRef
+   the second half of the lsit is pointed by *backRef */
 {
   node_t* slowPtr;
   node_t* fastPtr;
