@@ -8,13 +8,19 @@ struct node {
   node_t* next;
 };
 
+int InsertNth (node_t** head, int index, int data);
+
+int GetNth (node_t* head, int i);
+
+int pop (node_t** head);
+
 void basicsCaller ();
 
 void print_list_info (node_t* head);
 
 int length (node_t* head);
 
-void push (node_t** headRef, int newData);
+int push (node_t** headRef, int newData);
 
 node_t* buildOneTwoThree ();
 
