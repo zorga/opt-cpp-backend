@@ -12,15 +12,7 @@ llists: $(LLISTS)/llTests.trace
 
 others: miscellaneous/thesis_nicolas.trace
 
-# Generate the Valgrind traces for the files in the root directory :
-
 %.vgtrace: %.c $(VG)
-	$(CC) $(CFLAGS) $< -o $(basename $@).o
-	@$(VG) --tool=memcheck --source-filename=$< --trace-filename=$(basename $<).vgtrace ./$(basename $<).o || true
-
-# Generate the Valgrind traces for the LinkedList tests :
-
-%.vgtrace: $(LLISTS)/%.c $(VG) $(DEPS_LLISTS)
 	$(CC) $(CFLAGS) $< -o $(basename $@).o
 	@$(VG) --tool=memcheck --source-filename=$< --trace-filename=$(basename $<).vgtrace ./$(basename $<).o || true
 
