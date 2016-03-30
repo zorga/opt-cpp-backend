@@ -2,43 +2,6 @@
 #include <stdlib.h>
 #include "thesis_LinkedList.h" 
 
-#define PRINT_PTR (1)
-
-int main (int argc, char** argv)
-/* Put tests on list here */
-{
-  node_t* head = init(42);
-  push (&head, 9898);
-  push (&head, 9898);
-  push (&head, 839238);
-  push (&head, 839238);
-  push (&head, 78);
-  push (&head, 5);
-  push (&head, 5);
-  push (&head, 600);
-
-  // LIST BEFORE TESTS :
-  if (PRINT_PTR)
-  {
-    printList (head);
-  }
-  //TESTS :
-  InsertSort (&head);
-  //PRINT LIST :
-  if (PRINT_PTR)
-  {
-    printList (head);
-  }
-  RemoveDuplicates (head);
-  if (PRINT_PTR)
-  {
-    printList (head);
-  }
-
-  free_list (&head);
-  return 0;
-}
-
 void RemoveDuplicates (node_t* head)
 /* the list pointed by 'head' is a list sorted in increasing order
    this function deletes the duplicate nodes from that list */
