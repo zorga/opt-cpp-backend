@@ -5,11 +5,9 @@
 
 int main (int argc, char** argv)
 {
-	node_t* myList = init (18);
-	push (&myList, 17);
-	push (&myList, 16);
-	printList (myList);
-	free_list (&myList);
+	node_t* head = init (18);
+	push (&head, 17);
+	free_list (&head);
   return 0;
 }
 

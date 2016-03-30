@@ -32,6 +32,5 @@
 *.dSYM/
 
 # misc
-Makefile
 .deps
 .dirstamp
