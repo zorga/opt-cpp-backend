@@ -6,15 +6,25 @@ CC = @gcc
 PYTHON = python2.7
 SCRIPT = ../vg_to_opt_trace.py --create_jsvar=trace
 
-all-traces: basic.trace 
+all-traces: llists
+
+llists: $(LLISTS)/llTests.trace
+
+others: miscellaneous/thesis_nicolas.trace
+
+# Generate the Valgrind traces for the files in the root directory :
 
 %.vgtrace: %.c $(VG)
 	$(CC) $(CFLAGS) $< -o $(basename $@).o
 	@$(VG) --tool=memcheck --source-filename=$< --trace-filename=$(basename $<).vgtrace ./$(basename $<).o || true
 
+# Generate the Valgrind traces for the LinkedList tests :
+
 %.vgtrace: $(LLISTS)/%.c $(VG) $(DEPS_LLISTS)
 	$(CC) $(CFLAGS) $< -o $(basename $@).o
 	@$(VG) --tool=memcheck --source-filename=$< --trace-filename=$(basename $<).vgtrace ./$(basename $<).o || true
+
+# Generate the final trace files :
 
 %.trace: %.vgtrace ../vg_to_opt_trace.py
 	$(PYTHON) $(SCRIPT) $(basename $<) > $(basename $<).trace || true
@@ -22,4 +32,5 @@ all-traces: basic.trace
 .PHONY: clean
 
 clean:
-	rm -f *.trace *.vgtrace *.out *.o
+	rm -f */*.trace */*.vgtrace */*.out */*.o
+
