@@ -1,4 +1,4 @@
-all-traces: thesis_ref_ptr.trace
+all-traces: thesis_LinkedList.trace
 
 %.vgtrace: %.c ../../valgrind-3.11.0/inst/bin/valgrind
 	@gcc -ggdb -O0 -fno-omit-frame-pointer $< -o $(basename $@).o
