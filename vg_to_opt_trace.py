@@ -171,6 +171,49 @@ def encode_value(obj, heap):
   else:
     assert False
 
+def setEvents(filtered_execution_points):
+  """
+  Make sure that each successive entry in the filtered_execution_points list
+  has a identical, bigger, of smaller 'stack_to_render' list than the
+  previous one. These cases represent a 'step_line' event (nothing to do),
+  a function call, or a a function return, respectively.
+  returns a finalExecPoints list with the right 'event' entry for all
+  execution points of the trace
+  """
+  finalExecPoints = []
+
+  if filtered_execution_points:
+    finalExecPoints.append(filtered_execution_points[0])
+
+    for prev, cur in zip(filtered_execution_points, filtered_execution_points[1:]):
+      prev_frame_ids = [e['frame_id'] for e in prev['stack_to_render']]
+      cur_frame_ids = [e['frame_id'] for e in cur['stack_to_render']]
+
+      lenPrev = len(prev['stack_to_render'])
+      lenCur = len(prev['stack_to_render'])
+      
+      if lenPrev == lenCur:
+        finalExecPoints.append(cur)
+      elif lenPrev < lenCur:
+        cur['event'] = 'call'
+        finalExecPoints.append(cur)
+      elif lenPrev > lenCur:
+        prev['event'] = 'return'
+        finalExecPoints.append(cur)
+
+    # If all went well with parsing the entries, until now, we could set the
+    # event of the last execution point to 'return'
+    # Otherwise, it is an exception (crash case)
+    if success:
+      final_execution_points[-1]['event'] = 'return'
+    else:
+      final_execution_points[-1]['event'] = 'exception'
+      final_execution_points[-1]['exception_msg'] = 'code crash !'
+
+  return final_execution_points
+
+###############################################################################
+
 def main():
   """
   The main function of the script
@@ -223,67 +266,9 @@ def main():
     #print func_names, frame_ids
     filtered_execution_points.append(pt)
 
-
-  final_execution_points = []
-  if filtered_execution_points:
-    final_execution_points.append(filtered_execution_points[0])
-    # finally, make sure that each successive entry contains
-    # frame_ids that are either identical to the previous one, or
-    # differ by the addition or subtraction of one element at the
-    # end, which represents a function call or return, respectively.
-    # there are weird cases like:
-    #
-    # [u'main'] [u'0xFFEFFFE30']
-    # [u'main'] [u'0xFFEFFFE30']
-    # [u'foo'] [u'0xFFEFFFDC0'] <- bogus
-    # [u'main', u'foo'] [u'0xFFEFFFE30', u'0xFFEFFFDC0']
-    # [u'main', u'foo'] [u'0xFFEFFFE30', u'0xFFEFFFDC0']
-    #
-    # where the middle entry should be FILTERED OUT since it's
-    # missing 'main' for some reason
-    for prev, cur in zip(filtered_execution_points, filtered_execution_points[1:]):
-      prev_frame_ids = [e['frame_id'] for e in prev['stack_to_render']]
-      cur_frame_ids = [e['frame_id'] for e in cur['stack_to_render']]
-
-      # identical, we're good to go
-      if prev_frame_ids == cur_frame_ids:
-        final_execution_points.append(cur)
-      elif len(prev_frame_ids) < len(cur_frame_ids):
-        # cur_frame_ids is prev_frame_ids + 1 extra element on
-        # the end -> function call
-        if prev_frame_ids == cur_frame_ids[:-1]:
-          final_execution_points.append(cur)
-      elif len(prev_frame_ids) > len(cur_frame_ids):
-        # cur_frame_ids is prev_frame_ids MINUS the last element on
-        # the end -> function return
-        if cur_frame_ids == prev_frame_ids[:-1]:
-          final_execution_points.append(cur)
-
-    assert len(final_execution_points) <= len(filtered_execution_points)
-
-    # now mark 'call' and' 'return' events via the same heuristic as above
-    for prev, cur in zip(final_execution_points, final_execution_points[1:]):
-      prev_frame_ids = [e['frame_id'] for e in prev['stack_to_render']]
-      cur_frame_ids = [e['frame_id'] for e in cur['stack_to_render']]
-
-      if len(prev_frame_ids) < len(cur_frame_ids):
-        if prev_frame_ids == cur_frame_ids[:-1]:
-          cur['event'] = 'call'
-      elif len(prev_frame_ids) > len(cur_frame_ids):
-        if cur_frame_ids == prev_frame_ids[:-1]:
-          prev['event'] = 'return'
-
-    # super hack! what should we do about the LAST entry in the
-    # trace? if all went well with parsing all entries, then make it
-    # a 'return' (presumably from main) for proper closure. if
-    # something went wrong (!success), then make it an 'exception'
-    # with a cryptic message
-    if success:
-      final_execution_points[-1]['event'] = 'return'
-    else:
-      final_execution_points[-1]['event'] = 'exception'
-      final_execution_points[-1]['exception_msg'] = 'Oh noes, your code just crashed!\nSend bug reports to philip@pgbovine.net'
-
+  # Setting the 'event' entries of the executions points for the final trace
+  final_execution_points = setEvents(filtered_execution_points)
+  
   # only keep the FIRST 'step_line' event for any given line, to match what
   # a line-level debugger would do
   if ONLY_ONE_REC_PER_LINE:
@@ -293,49 +278,49 @@ def main():
     prev_frame_ids = None
 
     for elt in final_execution_points:
-      skip = False
-      cur_event = elt['event']
-      cur_line = elt['line']
-      cur_frame_ids = [e['frame_id'] for e in elt['stack_to_render']]
-      if prev_frame_ids:
-        if cur_event == prev_event == 'step_line':
-          if cur_line == prev_line and cur_frame_ids == prev_frame_ids:
-            skip = True
+    skip = False
+    cur_event = elt['event']
+    cur_line = elt['line']
+    cur_frame_ids = [e['frame_id'] for e in elt['stack_to_render']]
+    if prev_frame_ids:
+    if cur_event == prev_event == 'step_line':
+    if cur_line == prev_line and cur_frame_ids == prev_frame_ids:
+    skip = True
 
-      if not skip:
-        tmp.append(elt)
+    if not skip:
+tmp.append(elt)
 
-      prev_event = cur_event
-      prev_line = cur_line
-      prev_frame_ids = cur_frame_ids
+  prev_event = cur_event
+  prev_line = cur_line
+  prev_frame_ids = cur_frame_ids
 
-    final_execution_points = tmp # the ole' switcheroo
+  final_execution_points = tmp # the ole' switcheroo
 
 
   '''
   for elt in final_execution_points:
-      skip = False
-      cur_event = elt['event']
-      cur_line = elt['line']
-      cur_frame_ids = [e['frame_id'] for e in elt['stack_to_render']]
-      print cur_event, cur_line, cur_frame_ids
+  skip = False
+  cur_event = elt['event']
+  cur_line = elt['line']
+  cur_frame_ids = [e['frame_id'] for e in elt['stack_to_render']]
+  print cur_event, cur_line, cur_frame_ids
   '''
 
   if os.path.isfile(basename + '.c'):
     cod = open(basename + '.c').read()
-  else:
-    cod = open(basename + '.cpp').read()
+    else:
+      cod = open(basename + '.cpp').read()
 
-  # produce the final trace, voila!
-  final_res = {'code': cod, 'trace': final_execution_points}
+# produce the final trace, voila!
+      final_res = {'code': cod, 'trace': final_execution_points}
 
-  # use sort_keys to get some sensible ordering on object keys
-  s = json.dumps(final_res, indent=2, sort_keys=True)
+# use sort_keys to get some sensible ordering on object keys
+s = json.dumps(final_res, indent=2, sort_keys=True)
   if options.js_varname:
-    print('var ' + options.js_varname + ' = ' + s + ';')
+  print('var ' + options.js_varname + ' = ' + s + ';')
   else:
-    print(s)
+print(s)
 
-if __name__ == '__main__':
-  main()
+  if __name__ == '__main__':
+main()
 
