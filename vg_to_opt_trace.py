@@ -8,42 +8,18 @@
 # trace is $basename.vgtrace and the source file is $basename.{c,cpp}
 
 
-# this is pretty brittle and dependent on the user's gcc version and
-# such because it generates code to conform to certain calling
-# conventions, frame pointer settings, etc., eeek
-#
-# we're assuming that the user has compiled with:
-# gcc -ggdb -O0 -fno-omit-frame-pointer
-#
-# on a platform like:
-'''
-$ gcc -v
-Using built-in specs.
-COLLECT_GCC=gcc
-COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/4.8/lto-wrapper
-Target: x86_64-linux-gnu
-Configured with: ../src/configure -v --with-pkgversion='Ubuntu 4.8.4-2ubuntu1~14.04' --with-bugurl=file:///usr/share/doc/gcc-4.8/README.Bugs --enable-languages=c,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-4.8 --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --with-gxx-include-dir=/usr/include/c++/4.8 --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --enable-gnu-unique-object --disable-libmudflap --enable-plugin --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-4.8-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-4.8-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-4.8-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
-Thread model: posix
-gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04)
-'''
-
 import json
 import os
 import pprint
 import sys
 from optparse import OptionParser
 
-pp = pprint.PrettyPrinter(indent=2)
-
-RECORD_SEP = '=== pg_trace_inst ==='
-
-ONLY_ONE_REC_PER_LINE = True
 
 all_execution_points = []
 
 def process_record(lines):
   """
-  This function returns True if the parse is successful
+  This function returns True if the parsing is successful
   False otherwise
   """
   if not lines:
@@ -59,13 +35,12 @@ def process_record(lines):
   all_execution_points.append(x)
   return True
 
+
+
 def process_json_obj(obj):
   """
   This function is used to make the executions points for the final trace
   """
-  #print '---'
-  #pp.pprint(obj)
-  #print
 
   assert len(obj['stack']) > 0 # C programs always have a main at least!
   # Here, the assert will throw an exception (error) if the condition after assert is false
@@ -98,7 +73,8 @@ def process_json_obj(obj):
     stack_obj['func_name'] = e['func_name']
     stack_obj['ordered_varnames'] = e['ordered_varnames']
     stack_obj['is_highlighted'] = e is top_stack_entry
-    # the stack_obj['is_highlighted'] is set to "True" if e and top_stack_entry are the same variable (address AND value)
+    # the stack_obj['is_highlighted'] is set to "True" if e and top_stack_entry
+    # are the same variable (address AND value)
 
     # hacky: does FP (the frame pointer) serve as a unique enough frame ID?
     # sometimes it's set to 0 :/
@@ -116,14 +92,13 @@ def process_json_obj(obj):
     for local_var, local_val in e['locals'].iteritems():
       enc_locals[local_var] = encode_value(local_val, heap)
 
-  #pp.pprint(ret)
-  #print [(e['func_name'], e['frame_id']) for e in ret['stack_to_render']]
-
   return ret
+
+
 
 def encode_value(obj, heap):
   """
-  the function used to encode the different types of variables of the programs, in the
+  this function is used to encode the different types of variables of the programs, in the
   right trace (OPT) format.
   This is also used to update the heap in case of dynamically allocated variables
   (with malloc : heap_blocks)
@@ -168,6 +143,8 @@ def encode_value(obj, heap):
   else:
     assert False
 
+
+
 def setEvents(filtered_execution_points, success):
   """
   Make sure that each successive entry in the filtered_execution_points list
@@ -209,41 +186,52 @@ def setEvents(filtered_execution_points, success):
       finalExecPoints[-1]['event'] = 'exception'
       finalExecPoints[-1]['exception_msg'] = 'code crash !'
 
+    # The 'finalExecPoints' list should be smaller than 'filtered_execution_points' list
+    assert len(finalExecPoints) <= len(filtered_execution_points)
+
   return finalExecPoints
 
-###############################################################################
 
-def main():
+
+def removeRedundantLines(finalExecPoints):
   """
-  The main function of the script
+  This function is used to removed the redundant execution points with a
+  'step_line' event.
+  These execution points have the same 'line' entries and the same 'frame_id'
+  entries in their 'stack_to_render' entries.
   """
-  parser = OptionParser(usage="Create an OPT trace from a Valgrind trace")
-  parser.add_option("--create_jsvar", dest="js_varname", default=None,
-                      help="Create a JavaScript variable out of the trace")
-  (options, args) = parser.parse_args()
+  tmp = []
+  prev_event = None
+  prev_line = None
+  prev_frame_ids = None
 
-  basename = args[0]
-  cur_record_lines = []
+  for elt in finalExecPoints:
+    skip = False
+    cur_event = elt['event']
+    cur_line = elt['line']
+    cur_frame_ids = [e['frame_id'] for e in elt['stack_to_render']]
+    if prev_frame_ids:
+      if cur_event == prev_event == 'step_line':
+        if cur_line == prev_line and cur_frame_ids == prev_frame_ids:
+          skip = True
 
-  success = True
+    if not skip:
+      tmp.append(elt)
 
-  for line in open(basename + '.vgtrace'):
-    line = line.strip()
-    if line == RECORD_SEP:
-      success = process_record(cur_record_lines)
-      if not success:
-        break
-      cur_record_lines = []
-    else:
-      cur_record_lines.append(line)
+    prev_event = cur_event
+    prev_line = cur_line
+    prev_frame_ids = cur_frame_ids
 
-  # only parse final record if we've been successful so far; i.e., die
-  # on the first failed parse
-  if success:
-    success = process_record(cur_record_lines)
+  return tmp
 
-  # now do some filtering action based on heuristics
-  filtered_execution_points = []
+
+
+def filterExecPoints():
+  """
+  This function filters the execution points based on heuristics
+  TODO : To be improved
+  """
+  filteredExecPoints = []
 
   for pt in all_execution_points:
     # any execution point with a 0x0 frame pointer is bogus
@@ -262,48 +250,48 @@ def main():
     # but we shouldn't have any more by now
     assert '???' not in func_names
 
-    #print func_names, frame_ids
-    filtered_execution_points.append(pt)
+    filteredExecPoints.append(pt)
+  return filteredExecPoints
 
-  # Setting the 'event' entries of the executions points for the final trace
+
+
+def main():
+  """
+  The main function of the script
+  """
+  parser = OptionParser(usage="Create an OPT trace from a Valgrind trace")
+  parser.add_option("--create_jsvar", dest="js_varname", default=None,
+                      help="Create a JavaScript variable out of the trace")
+  (options, args) = parser.parse_args()
+
+  basename = args[0]
+  cur_record_lines = []
+
+  RECORD_SEP = '=== pg_trace_inst ==='
+
+  # This variable is set to 'True' if Valgrind trace parsing went well
+  success = True
+
+  for line in open(basename + '.vgtrace'):
+    line = line.strip()
+    if line == RECORD_SEP:
+      success = process_record(cur_record_lines)
+      if not success:
+        break
+      cur_record_lines = []
+    else:
+      cur_record_lines.append(line)
+  # only parse final record if we've been successful so far
+  if success:
+    success = process_record(cur_record_lines)
+
+
+
+  filtered_execution_points = filterExecPoints();
   final_execution_points = setEvents(filtered_execution_points, success)
+  final_execution_points = removeRedundantLines(final_execution_points)
   
-  # only keep the FIRST 'step_line' event for any given line, to match what
-  # a line-level debugger would do
-  if ONLY_ONE_REC_PER_LINE:
-    tmp = []
-    prev_event = None
-    prev_line = None
-    prev_frame_ids = None
 
-    for elt in final_execution_points:
-      skip = False
-      cur_event = elt['event']
-      cur_line = elt['line']
-      cur_frame_ids = [e['frame_id'] for e in elt['stack_to_render']]
-      if prev_frame_ids:
-        if cur_event == prev_event == 'step_line':
-          if cur_line == prev_line and cur_frame_ids == prev_frame_ids:
-            skip = True
-
-      if not skip:
-        tmp.append(elt)
-
-      prev_event = cur_event
-      prev_line = cur_line
-      prev_frame_ids = cur_frame_ids
-
-    final_execution_points = tmp # the ole' switcheroo
-
-
-  '''
-  for elt in final_execution_points:
-  skip = False
-  cur_event = elt['event']
-  cur_line = elt['line']
-  cur_frame_ids = [e['frame_id'] for e in elt['stack_to_render']]
-  print cur_event, cur_line, cur_frame_ids
-  '''
 
   if os.path.isfile(basename + '.c'):
     cod = open(basename + '.c').read()
