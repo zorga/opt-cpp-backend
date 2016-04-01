@@ -6,7 +6,7 @@
 # Many thanks to him ! Link : http://pgbovine.net/rosetta/c-demo.html
 
 # Hacked by Nicolas Ooghe for his master thesis in Computer Sciences at the
-# "Université Catholique de Louvain" University
+# Universite Catholique de Louvain
 
 # pass in the $basename of a program. assumes that the Valgrind-produced
 # trace is $basename.vgtrace and the source file is $basename.{c,cpp}
