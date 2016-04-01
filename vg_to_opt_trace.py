@@ -26,8 +26,8 @@ def process_record(lines):
   the 'all_execution_points' global variable.
   
   Args:
-    lines (list): a list of lines from a .vgtrace file corresponding to an execution
-    point record in the Valgrind trace format.
+    lines (list): a list of lines (Strings) from a .vgtrace file corresponding 
+    to an execution point record in the Valgrind trace format.
 
   Returns:
     bool: True if successful, False otherwise.
@@ -50,7 +50,16 @@ def process_record(lines):
 
 def process_json_obj(obj):
   """
-  This function is used to make the executions points for the final trace
+  This function transforms a Valgrind execution point object in the final
+  trace format.
+
+  Args:
+    obj (JSON Python object): An execution point object in the Valgrind trace format
+    (Which are themselves encoded in the JSON format)
+
+  Returns:
+    dict: A Dictonnary representing a execution point in the final trace format
+
   """
 
   assert len(obj['stack']) > 0 # C programs always have a main at least!
@@ -109,10 +118,23 @@ def process_json_obj(obj):
 
 def encode_value(obj, heap):
   """
-  this function is used to encode the different types of variables of the programs, in the
-  right trace format.
-  This is also used to update the heap in case of dynamically allocated variables
-  (with malloc : heap_blocks)
+  This function encodes the global and local variables from an execution point in the
+  Valgrind trace format into the the final trace format.
+  It could also modify the 'heap' dictionnary defined in the 'process_json_obj' calling
+  function (i.e. while processing pointers variables that points to valid data)
+
+  Args:
+    obj (dict): a dictionnary containing the information about the value of a variable
+    from a Vagrind execution point format
+
+    heap (dict): a dictionnary representing the 'heap' of an execution trace. It
+    is variable defined in the calling 'process_json_obj' function and could be updated
+    accordingly during the 'encode_value' function call
+
+  Returns:
+    list: a list containing the information about the variable originally described in
+    the 'obj' argument, in the final trace format
+
   """
   if obj['kind'] == 'base':
     return ['C_DATA', obj['addr'], obj['type'], obj['val']]
@@ -158,12 +180,19 @@ def encode_value(obj, heap):
 
 def setEvents(filtered_execution_points, success):
   """
-  Make sure that each successive entry in the filtered_execution_points list
-  has a identical, bigger, of smaller 'stack_to_render' list than the
-  previous one. These cases represent a 'step_line' event (nothing to do),
-  a function call, or a a function return, respectively.
-  returns a finalExecPoints list with the right 'event' entry for all
-  execution points of the trace
+  This function modify the 'event' entries of the dictionnaries representing an
+  execution point in the final trace format (i.e. 'call', 'return', 'step_line')
+  accordingly.
+  
+  Args:
+    filtered_execution_points (list): a list of execution point in the final trace
+    format.
+
+    success (bool): a boolean that represents the success of the Valgrind trace
+    file parsing. It's useful to modify the 'event' entry of the last execution point.
+    (If the parsing went bad, it means that the Valgrind trace is badly formatted. Thus,
+    the corresponding C program crashed during the Valgrind analysis)
+
   """
   finalExecPoints = []
 
