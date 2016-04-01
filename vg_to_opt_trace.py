@@ -14,13 +14,24 @@ import pprint
 import sys
 from optparse import OptionParser
 
-
+# Global variables definitions :
 all_execution_points = []
+
+# Functions definitions :
 
 def process_record(lines):
   """
-  This function returns True if the parsing is successful
-  False otherwise
+  This function should be used as a sub-routine for the .vgtrace files parsing.
+  It parses an execution point in the Valgrind trace format and append it, to
+  the 'all_execution_points' global variable.
+  
+  Args:
+    lines (list): a list of lines from a .vgtrace file corresponding to an execution
+    point record in the Valgrind trace format.
+
+  Returns:
+    bool: True if successful, False otherwise.
+
   """
   if not lines:
     return True # 'nil success case to keep the parser going
@@ -99,7 +110,7 @@ def process_json_obj(obj):
 def encode_value(obj, heap):
   """
   this function is used to encode the different types of variables of the programs, in the
-  right trace (OPT) format.
+  right trace format.
   This is also used to update the heap in case of dynamically allocated variables
   (with malloc : heap_blocks)
   """
@@ -263,15 +274,12 @@ def main():
   parser.add_option("--create_jsvar", dest="js_varname", default=None,
                       help="Create a JavaScript variable out of the trace")
   (options, args) = parser.parse_args()
-
   basename = args[0]
   cur_record_lines = []
-
   RECORD_SEP = '=== pg_trace_inst ==='
-
-  # This variable is set to 'True' if Valgrind trace parsing went well
   success = True
 
+  # Parsing the VG trace file
   for line in open(basename + '.vgtrace'):
     line = line.strip()
     if line == RECORD_SEP:
