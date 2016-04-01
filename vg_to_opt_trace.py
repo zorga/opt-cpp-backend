@@ -20,6 +20,9 @@ import sys
 from optparse import OptionParser
 
 # Global variables definitions :
+
+# This list will contain all the execution points record from the Valgrind trace file
+# if it's successfully parsed
 all_execution_points = []
 
 # Functions definitions :
