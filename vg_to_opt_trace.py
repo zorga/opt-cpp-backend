@@ -183,14 +183,14 @@ def encode_value(obj, heap):
 
 
 
-def setEvents(filtered_execution_points, success):
+def setEvents(ExecutionPoints, success):
   """
   This function modify the 'event' entries of the dictionnaries representing an
   execution point in the final trace format (i.e. 'call', 'return', 'step_line')
   accordingly.
   
   Args:
-    filtered_execution_points (list): a list of execution point in the final trace
+    ExecutionPoints (list): a list of execution point in the final trace
     format.
 
     success (bool): a boolean that represents the success of the Valgrind trace
@@ -205,10 +205,10 @@ def setEvents(filtered_execution_points, success):
   """
   finalExecPoints = []
 
-  if filtered_execution_points:
-    finalExecPoints.append(filtered_execution_points[0])
+  if ExecutionPoints:
+    finalExecPoints.append(ExecutionPoints[0])
 
-    for prev, cur in zip(filtered_execution_points, filtered_execution_points[1:]):
+    for prev, cur in zip(ExecutionPoints, ExecutionPoints[1:]):
       prev_frame_ids = [e['frame_id'] for e in prev['stack_to_render']]
       cur_frame_ids = [e['frame_id'] for e in cur['stack_to_render']]
 
@@ -235,21 +235,21 @@ def setEvents(filtered_execution_points, success):
       finalExecPoints[-1]['event'] = 'exception'
       finalExecPoints[-1]['exception_msg'] = 'code crash !'
 
-    # The 'finalExecPoints' list should be smaller than 'filtered_execution_points' list
-    assert len(finalExecPoints) <= len(filtered_execution_points)
+    # The 'finalExecPoints' list should have the same size 'ExecutionPoints' list
+    assert len(finalExecPoints) <= len(ExecutionPoints)
 
   return finalExecPoints
 
 
 
-def removeRedundantLines(finalExecPoints):
+def removeRedundantLines(ExecutionPoints):
   """
   Removes the redundant execution points. Such execution points all have their 'event'
   entry set to 'step_line'. They have the same 'line' entries and the same 'frame_id'
   entries in their 'stack_to_render' entries (dictionnaries).
   
   Args:
-    finalExecPoints (list): a list of execution points in the final trace format.
+    ExecutionPoints (list): a list of execution points in the final trace format.
 
   Returns:
     list: a list of execution points in the final trace format with their redundant
@@ -261,7 +261,7 @@ def removeRedundantLines(finalExecPoints):
   prev_line = None
   prev_frame_ids = None
 
-  for elt in finalExecPoints:
+  for elt in ExecutionPoints:
     skip = False
     cur_event = elt['event']
     cur_line = elt['line']
