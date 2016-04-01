@@ -1,11 +1,16 @@
-# Convert a trace created by the Valgrind OPT C backend to a format that
-# the OPT frontend can digest
+# Converts a trace created by the Valgrind C backend to a format that
+# will be used by the frontend to generate the graphs representing the
+# execution of a C program
 
-# Created 2015-10-04 by Philip Guo
-# Hacked by Nicolas Ooghe
+# Originally created 2015-10-04 by Philip Guo for his Online Python Tutor tool
+# Many thanks to him ! Link : http://pgbovine.net/rosetta/c-demo.html
+
+# Hacked by Nicolas Ooghe for his master thesis in Computer Sciences at the
+# "Université Catholique de Louvain" University
 
 # pass in the $basename of a program. assumes that the Valgrind-produced
 # trace is $basename.vgtrace and the source file is $basename.{c,cpp}
+
 
 
 import json
@@ -193,6 +198,10 @@ def setEvents(filtered_execution_points, success):
     (If the parsing went bad, it means that the Valgrind trace is badly formatted. Thus,
     the corresponding C program crashed during the Valgrind analysis)
 
+  Returns:
+    list: a list of execution points in the final trace format with their 'event'
+    entries modified accordingly.
+
   """
   finalExecPoints = []
 
@@ -235,10 +244,17 @@ def setEvents(filtered_execution_points, success):
 
 def removeRedundantLines(finalExecPoints):
   """
-  This function is used to removed the redundant execution points with a
-  'step_line' event.
-  These execution points have the same 'line' entries and the same 'frame_id'
-  entries in their 'stack_to_render' entries.
+  Removes the redundant execution points. Such execution points all have their 'event'
+  entry set to 'step_line'. They have the same 'line' entries and the same 'frame_id'
+  entries in their 'stack_to_render' entries (dictionnaries).
+  
+  Args:
+    finalExecPoints (list): a list of execution points in the final trace format.
+
+  Returns:
+    list: a list of execution points in the final trace format with their redundant
+    execution points removed.
+
   """
   tmp = []
   prev_event = None
@@ -268,8 +284,18 @@ def removeRedundantLines(finalExecPoints):
 
 def filterExecPoints():
   """
-  This function filters the execution points based on heuristics
+  This function filters the execution points based on heuristics and tracks bogus
+  execution points
+
+  This function modifies the 'all_execution_points' global variable. So there are no
+  arguments for this function.
+
+  Returns:
+    list: a list of execution point in the final trace format if their are no bogus
+    ones in the original list.
+
   TODO : To be improved
+
   """
   filteredExecPoints = []
 
@@ -298,6 +324,7 @@ def filterExecPoints():
 def main():
   """
   The main function of the script
+
   """
   parser = OptionParser(usage="Create an OPT trace from a Valgrind trace")
   parser.add_option("--create_jsvar", dest="js_varname", default=None,
@@ -318,32 +345,30 @@ def main():
       cur_record_lines = []
     else:
       cur_record_lines.append(line)
-  # only parse final record if we've been successful so far
+  # Only parse final record if we've been successful so far
   if success:
     success = process_record(cur_record_lines)
 
-
-
+  # Processing the execution point list
   filtered_execution_points = filterExecPoints();
   final_execution_points = setEvents(filtered_execution_points, success)
   final_execution_points = removeRedundantLines(final_execution_points)
   
-
-
-  if os.path.isfile(basename + '.c'):
-    cod = open(basename + '.c').read()
-  else:
-    cod = open(basename + '.cpp').read()
-
-  # produce the final trace, voila!
+  # Getting the code source of the program in a String variable and adding it in
+  # the final trace file
+  cod = open(basename + '.c').read()
   final_res = {'code': cod, 'trace': final_execution_points}
 
   # use sort_keys to get some sensible ordering on object keys
   s = json.dumps(final_res, indent=2, sort_keys=True)
+
+  # Creating a javaScript variable if required by the user
   if options.js_varname:
     print('var ' + options.js_varname + ' = ' + s + ';')
   else:
     print(s)
+
+
 
 if __name__ == '__main__':
   main()
