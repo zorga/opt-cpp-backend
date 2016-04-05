@@ -12,7 +12,6 @@ def get_exec_point_info (obj):
   info["heap"] = obj["heap"] 
   info["frame_name"] = obj["func_name"] 
   info["frames"] = obj["stack_to_render"]
-  
   return info
 
 

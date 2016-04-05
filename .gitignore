@@ -36,6 +36,9 @@
 .dirstamp
 *.svg
 *.dot
+img/*
+dots/*
+*.swp
 
 # python
 __pycache__

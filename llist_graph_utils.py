@@ -1,5 +1,6 @@
 import sys
 from pygraphviz import *
+from pprint import pprint
 
 # Global variables :
 n_color = "#9ACEEB"
@@ -7,27 +8,58 @@ e_color = "#FCD975"
 
 def build_graph_from(obj, i):
   G = init_exec_point_graph()
-  G.layout(prog="dot")
-  graph_file_name = "graph " + str(i) + ".svg"
-  G.draw(graph_file_name)
-  graph_src = "source " + str(i) + ".dot"
-  G.write(graph_src)
+
+  heapG = G.get_subgraph("clusterHeap")
+  #print(len(obj["heap"]))
+  if (len(obj["heap"]) > 0):
+    for k in obj["heap"]:
+      add_node_from_heap_var(heapG, obj["heap"][k])
+
+
+  graph_file_name = "graph" + str(i)
+  output_graph(G, graph_file_name)
+
+
+
+def output_graph(graph, name):
+  graph.layout(prog="dot")
+  graph.draw("img/" + name + ".png")
+  graph.write("dots/" + name + ".dot")
   
-  return 0
+  
 
+def add_node_from_heap_var(heap_graph, var):
+  print("="*15)
+  #print(len(var))
+  pprint(var)
+  if (len(var) > 2):
+    varInfo = var[2]
+    address = varInfo[1]
+    print("address : ", address)
+    struct_type = varInfo[2]
+    print("struct_type : ", struct_type)
+    data_field = varInfo[3]
+    next_field = varInfo[4]
+    data_value = data_field[1][3]
+    print("data_value : ", data_value)
+    next_value = next_field[1][3]
+    print("next_value : ", next_value)
 
-def add_node_from_heap_var(heap_graph, var_info):
-  heap_graph.add_node(var_info["addr"])
-  n = graph.get_node(var_info["addr"])
-  n.attr["shape"] = "record"
-  n.attr["width"] = 1
-  n.attr["height"] = 1
+    heap_graph.add_node(address) 
+    n = heap_graph.get_node(address)
+    n.attr["shape"] = "record"
+    n.attr["width"] = 1
+    n.attr["height"] = 1
+    label = struct_type + " | Data : " + str(data_value) + " | Address :\\n " + address
+    label = label + " | next : " + str(next_value)
+    n.attr["label"] = label
 
-  label = "" + var_info["type"] + " | Data : " + var_info["data"] + " | Address :\\n " + var_info["addr"] + " | next : " + var_info["next"]
-
-  n.attr["label"] = label
+  else:
+    pass
 
   return heap_graph
+
+
 
 def init_exec_point_graph():
   # Defining graph attributes :
