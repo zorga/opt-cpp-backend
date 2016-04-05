@@ -35,3 +35,10 @@
 .deps
 .dirstamp
 *.svg
+*.dot
+
+# python
+__pycache__
+
+# backend
+*.trace
