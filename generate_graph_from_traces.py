@@ -3,15 +3,22 @@
 # INGInious platform at UCL
 
 import graphviz as gv
+import json
+from pprint import pprint
 
-def main():
-  g2 = gv.Digraph(format='svg')
+def get_exec_point_info (path):
+  pass
   
 
-  print(g1.source)
+def main():
+  with open("thesis_LinkedList.trace") as trace_file:
+    trace = json.load(trace_file)
+    for exec_points in trace:
+      pprint(exec_points)
 
-  filename = g1.render(filename='g1.dot')
-  print(filename)
+print("Hello World !")
+  
+
 
 if __name__ == '__main__':
     main()
