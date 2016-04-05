@@ -1,0 +1,59 @@
+digraph {
+	graph [bb="0,0,422,356",
+		nodesep=1.5,
+		rankdir=LR
+	];
+	node [color="#9ACEEB",
+		label="\N"
+	];
+	edge [arrowsize=1,
+		color="#FCD975"
+	];
+	subgraph clusterHeap {
+		graph [bb="194,201,414,348",
+			color=indigo,
+			label=Heap,
+			lheight=0.21,
+			lp="304,336.5",
+			lwidth=0.40,
+			rankdir=LR
+		];
+		"0x51D7090"		 [height=1.5,
+			label="node_t | Data : 17 | Address :\n 0x51D7090 | next",
+			pos="244,263",
+			rects="202,293.5,286,316.5 202,270.5,286,293.5 202,232.5,286,270.5 202,209.5,286,232.5",
+			shape=record,
+			width=1.1667];
+		"0x51D7040"		 [height=1.5,
+			label="node_t | Data : 18 | Address :\n 0x51D7040 | next",
+			pos="364,263",
+			rects="322,293.5,406,316.5 322,270.5,406,293.5 322,232.5,406,270.5 322,209.5,406,232.5",
+			shape=record,
+			width=1.1667];
+		"0x51D7090" -> "0x51D7040"		 [pos="e,321.95,263 286.27,263 294.49,263 303.22,263 311.73,263"];
+	}
+	subgraph clusterFrames {
+		graph [bb="8,8,174,341",
+			color=grey,
+			label="Stack Frames",
+			lheight=0.21,
+			lp="91,329.5",
+			lwidth=1.04,
+			rankdir=TB,
+			syle=filled
+		];
+		head		 [height=1.2917,
+			label=" pointer | head | Value : 0x51D7040 | Address : 0xFFF0003E8 ",
+			pos="91,263",
+			rects="16,286,166,309 16,263,166,286 16,240,166,263 16,217,166,240",
+			shape=record,
+			width=2.0833];
+		letter		 [height=1.2917,
+			label="char | letter | Value : c | Address : 0x8989899 ",
+			pos="91,62",
+			rects="24.5,85,157.5,108 24.5,62,157.5,85 24.5,39,157.5,62 24.5,16,157.5,39",
+			shape=record,
+			width=1.8472];
+	}
+	head -> "0x51D7090"	 [pos="e,201.72,263 166.17,263 174.77,263 183.4,263 191.6,263"];
+}

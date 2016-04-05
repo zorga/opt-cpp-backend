@@ -7,7 +7,6 @@ int main (int argc, char** argv)
 	node_t* head = init (18);
 	push (&head, 17);
 	free_list (&head);
-	printf ("done\n");
 	return 0;
 }
 
