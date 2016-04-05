@@ -27,7 +27,7 @@ def main():
   head.attr["shape"] = "record"
   head.attr["width"] = 1
   head.attr["height"] = 1
-  head.attr["label"] = " pointer | head | Value : 0x51D7040 | Address : 0xFFF0003E8 "
+  head.attr["label"] = " {pointer | head} | Value : 0x51D7040 | Address : 0xFFF0003E8 "
 
   G.add_node("0x51D7090")
   n = G.get_node("0x51D7090")
@@ -43,25 +43,30 @@ def main():
   m.attr["height"] = 1
   m.attr["label"] = "node_t | Data : 18 | Address :\\n 0x51D7040 | next"
 
-  G.add_node("letter", shape = "record", label = "char | letter | Value : c | Address : 0x8989899 ")
+  G.add_node("letter", shape = "record", label = "{char | letter} | Value : c | Address : 0x8989899 ")
 
   # Defining edges
   G.add_edge("head", "0x51D7090")
   G.add_edge("0x51D7090", "0x51D7040")
 
   # Frames cluster
-  clusVar = G.add_subgraph(["head", "letter"], name = "clusterFrames")
-  clusVar.graph_attr["rankdir"] = "TB"
-  clusVar.graph_attr["color"] = "grey"
-  clusVar.node_attr["syle"] = "filled"
-  clusVar.graph_attr["label"] = "Stack Frames"
+  clusFrame = G.add_subgraph(["head", "letter"], name = "clusterFrames")
+  clusFrame.graph_attr["rankdir"] = "TB"
+  clusFrame.graph_attr["color"] = "grey"
+  clusFrame.node_attr["syle"] = "filled"
+  clusFrame.graph_attr["label"] = "Stack Frames"
   
   # Heap cluster
   clusHeap = G.add_subgraph(["0x51D7090", "0x51D7040"], name = "clusterHeap")
   clusHeap.graph_attr["rankdir"] = "LR"
   clusHeap.graph_attr["color"] = "indigo"
   clusHeap.graph_attr["label"] = "Heap"
-  
+
+  # Main frame cluster
+  mainF = clusFrame.add_subgraph(["head"], name = "clusterMain")
+  mainF.graph_attr["label"] = "main frame"
+  mainF.graph_attr["color"] = "red"
+
   G.layout(prog="dot")
   G.draw("graph.svg")
   # Output graph source code
