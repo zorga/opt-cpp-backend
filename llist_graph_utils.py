@@ -7,43 +7,35 @@ n_color = "#9ACEEB"
 e_color = "#FCD975"
 
 def build_graph_from(obj, i):
-  G = init_exec_point_graph()
+  final_graph = init_exec_point_graph()
 
-  heapG = G.get_subgraph("clusterHeap")
-  #print(len(obj["heap"]))
+  heapG = final_graph.get_subgraph("clusterHeap")
   if (len(obj["heap"]) > 0):
     for k in obj["heap"]:
-      add_node_from_heap_var(heapG, obj["heap"][k])
-
+      heapG = add_node_from_heap_var(heapG, obj["heap"][k])
+  final_graph.add_subgraph(heapG)
 
   graph_file_name = "graph" + str(i)
-  output_graph(G, graph_file_name)
+  output_graph(final_graph, graph_file_name)
 
 
 
 def output_graph(graph, name):
   graph.layout(prog="dot")
-  graph.draw("img/" + name + ".png")
+  graph.draw("img/" + name + ".svg")
   graph.write("dots/" + name + ".dot")
   
   
 
 def add_node_from_heap_var(heap_graph, var):
-  print("="*15)
-  #print(len(var))
-  pprint(var)
   if (len(var) > 2):
     varInfo = var[2]
     address = varInfo[1]
-    print("address : ", address)
     struct_type = varInfo[2]
-    print("struct_type : ", struct_type)
     data_field = varInfo[3]
     next_field = varInfo[4]
     data_value = data_field[1][3]
-    print("data_value : ", data_value)
     next_value = next_field[1][3]
-    print("next_value : ", next_value)
 
     heap_graph.add_node(address) 
     n = heap_graph.get_node(address)
