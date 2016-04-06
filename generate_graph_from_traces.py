@@ -16,10 +16,10 @@ def get_exec_point_info (obj):
 
 
 def main():
-  print("Graphs generating...")
+  print("Generating execution points graphs...")
   with open("thesis_LinkedList.trace") as trace_file:
     trace = json.load(trace_file)
-    i = 1
+    i = 0
     for exec_point in trace["trace"]:
       infos = get_exec_point_info(exec_point)
       # 'i' will serve for the graph image file name

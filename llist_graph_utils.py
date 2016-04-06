@@ -9,10 +9,10 @@ e_color = "#FCD975"
 debug = 0
 
 def build_graph_from(obj, i):
-  # "obj" is a dict
   final_graph = init_exec_point_graph()
 
   heapG = final_graph.get_subgraph("clusterHeap")
+  heapG.graph_attr["rankdir"] = "LR"
 
   if (debug):
     print("Heap state of execution point " + str(i) + " : ")
@@ -30,12 +30,11 @@ def build_graph_from(obj, i):
       if (var_info):
         heapG.add_node(var_info[0])
         newNode = heapG.get_node(var_info[0])
+        newNode.attr["rankdir"] = "BT"
         newNode.attr["shape"] = "record"
-        newNode.attr["width"] = 1
-        newNode.attr["height"] = 1
-        newNode.attr["label"] = str(var_info[1]) + " | Data : " + str(var_info[2]) + " Address :\\n " + str(var_info[0]) + " | next : " + str(var_info[3])
+        newNode.attr["label"] = str(var_info[1]) + " | Data : " + str(var_info[2]) + " | Address :\\n " + str(var_info[0]) + " | next : " + str(var_info[3])
 
-  graph_file_name = "graph" + str(i)
+  graph_file_name = "exec_point_" + str(i)
   output_graph(final_graph, graph_file_name)
 
 
@@ -53,6 +52,9 @@ def retrieve_heap_var_info(HeapVar):
     next_value = next_field[1][3]
 
     vInfo = [address, struct_type, data_value, next_value]
+    # from : http://stackoverflow.com/questions/24201926/
+    # weird : "<UNINITIALIZED> string doesn't fit in the node labels
+    vInfo[:] = [x if x != "<UNINITIALIZED>" else "uninitialized" for x in vInfo]
 
   else:
     # TODO : handle this case
@@ -70,7 +72,6 @@ def init_exec_point_graph():
 
   # Defining edge attributes :
   G.edge_attr["color"] = e_color
-  G.edge_attr["arrowsize"] = 1
 
   # Defining the node attributes
   G.node_attr["color"] = n_color
@@ -80,13 +81,13 @@ def init_exec_point_graph():
   clusFrame.graph_attr["rankdir"] = "TB"
   clusFrame.graph_attr["color"] = "grey"
   clusFrame.graph_attr["label"] = "Stack Frames"
-  clusFrame.node_attr["style"] = "filled"
 
   # Defining Heap cluster
   clusHeap = G.add_subgraph(name = "clusterHeap")
   clusHeap.graph_attr["rankdir"] = "LR"
   clusHeap.graph_attr["color"] = "indigo"
   clusHeap.graph_attr["label"] = "Heap"
+  clusHeap.node_attr["fixedsize"] = "True"
 
   return G
 
