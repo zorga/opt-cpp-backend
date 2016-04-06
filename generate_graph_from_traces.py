@@ -16,6 +16,7 @@ def get_exec_point_info (obj):
 
 
 def main():
+  print("Graphs generating...")
   with open("thesis_LinkedList.trace") as trace_file:
     trace = json.load(trace_file)
     i = 1
@@ -27,7 +28,6 @@ def main():
     # at this points, the graph should be present in the current dir
     trace_file.close
 
-print("Hello World !")
   
 
 

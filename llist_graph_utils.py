@@ -5,31 +5,45 @@ from pprint import pprint
 # Global variables :
 n_color = "#9ACEEB"
 e_color = "#FCD975"
+# For debugging :
+debug = 1
 
 def build_graph_from(obj, i):
+  # "obj" is a dict
   final_graph = init_exec_point_graph()
 
   heapG = final_graph.get_subgraph("clusterHeap")
-  if (len(obj["heap"]) > 0):
-    for k in obj["heap"]:
-      heapG = add_node_from_heap_var(heapG, obj["heap"][k])
-  final_graph.add_subgraph(heapG)
+  if (debug):
+    print("Heap state of execution point " + str(i) + " : ")
+    if (len(obj["heap"]) <= 0):
+      print("Empty heap")
+    for k, v in obj["heap"].items():
+      print(k)
+      pprint(v)
+
+  # Non-empty heap case
+  heap = obj["heap"]
+  if (len(heap) > 0):
+    for k, v in heap.items():
+      var_info = retrieve_heap_var_info(heap[k])
+      if (var_info):
+        heapG.add_node(var_info[0])
+        newNode = heapG.get_node(var_info[0])
+        newNode.attr["shape"] = "record"
+        newNode.attr["width"] = 1
+        newNode.attr["height"] = 1
+        newNode.attr["label"] = ""
 
   graph_file_name = "graph" + str(i)
   output_graph(final_graph, graph_file_name)
 
 
 
-def output_graph(graph, name):
-  graph.layout(prog="dot")
-  graph.draw("img/" + name + ".svg")
-  graph.write("dots/" + name + ".dot")
-  
-  
+def retrieve_heap_var_info(HeapVar):
+  vInfo = []
 
-def add_node_from_heap_var(heap_graph, var):
-  if (len(var) > 2):
-    varInfo = var[2]
+  if (len(HeapVar) > 2):
+    varInfo = HeapVar[2]
     address = varInfo[1]
     struct_type = varInfo[2]
     data_field = varInfo[3]
@@ -37,19 +51,14 @@ def add_node_from_heap_var(heap_graph, var):
     data_value = data_field[1][3]
     next_value = next_field[1][3]
 
-    heap_graph.add_node(address) 
-    n = heap_graph.get_node(address)
-    n.attr["shape"] = "record"
-    n.attr["width"] = 1
-    n.attr["height"] = 1
-    label = struct_type + " | Data : " + str(data_value) + " | Address :\\n " + address
-    label = label + " | next : " + str(next_value)
-    n.attr["label"] = label
+    vInfo = [address, struct_type, data_value, next_value]
 
   else:
-    pass
+    # TODO : handle this case
+    if (debug):
+      print("HEAP VAR FREED")
 
-  return heap_graph
+  return vInfo
 
 
 
@@ -79,4 +88,9 @@ def init_exec_point_graph():
   clusHeap.graph_attr["label"] = "Heap"
 
   return G
+
+def output_graph(graph, name):
+  graph.layout(prog="dot")
+  #graph.draw("img/" + name + ".svg")
+  graph.write("dots/" + name + ".dot")
   
