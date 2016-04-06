@@ -6,13 +6,14 @@ from pprint import pprint
 n_color = "#9ACEEB"
 e_color = "#FCD975"
 # For debugging :
-debug = 1
+debug = 0
 
 def build_graph_from(obj, i):
   # "obj" is a dict
   final_graph = init_exec_point_graph()
 
   heapG = final_graph.get_subgraph("clusterHeap")
+
   if (debug):
     print("Heap state of execution point " + str(i) + " : ")
     if (len(obj["heap"]) <= 0):
@@ -32,7 +33,7 @@ def build_graph_from(obj, i):
         newNode.attr["shape"] = "record"
         newNode.attr["width"] = 1
         newNode.attr["height"] = 1
-        newNode.attr["label"] = ""
+        newNode.attr["label"] = str(var_info[1]) + " | Data : " + str(var_info[2]) + " Address :\\n " + str(var_info[0]) + " | next : " + str(var_info[3])
 
   graph_file_name = "graph" + str(i)
   output_graph(final_graph, graph_file_name)
@@ -91,6 +92,6 @@ def init_exec_point_graph():
 
 def output_graph(graph, name):
   graph.layout(prog="dot")
-  #graph.draw("img/" + name + ".svg")
+  graph.draw("img/" + name + ".svg")
   graph.write("dots/" + name + ".dot")
   
