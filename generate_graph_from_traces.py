@@ -20,6 +20,9 @@ def main():
   with open("thesis_LinkedList.trace") as trace_file:
     trace = json.load(trace_file)
     i = 0
+    # Get the useful informations from each exec point and put them into
+    # the 'infos' list
+    # Then call the 'build_graph_from' function from 'llist_graph_utils' to build the graphs
     for exec_point in trace["trace"]:
       infos = get_exec_point_info(exec_point)
       # 'i' will serve for the graph image file name

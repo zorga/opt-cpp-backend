@@ -14,6 +14,7 @@ def build_graph_from(obj, i):
   heapG = final_graph.get_subgraph("clusterHeap")
   heapG.graph_attr["rankdir"] = "LR"
 
+  # Only for debugging purposes...
   if (debug):
     print("Heap state of execution point " + str(i) + " : ")
     if (len(obj["heap"]) <= 0):
@@ -26,6 +27,11 @@ def build_graph_from(obj, i):
   heap = obj["heap"]
   if (len(heap) > 0):
     for k, v in heap.items():
+      # If the heap of the current exec_point is not empty, call the
+      # 'retrieve_heap_var' function to get the informations about the data on the heap
+      # and put them into the 'var_info' list.
+      # The element of this list are used to compose de nodes of the graph
+      # Only the heap graph for now
       var_info = retrieve_heap_var_info(heap[k])
       if (var_info):
         heapG.add_node(var_info[0])
@@ -42,6 +48,9 @@ def build_graph_from(obj, i):
 def retrieve_heap_var_info(HeapVar):
   vInfo = []
 
+  # It is a bit hard to understand what's going on here but I simply get the
+  # information I need out of the exec_point in the .trace file.
+  # Could be better written later ?
   if (len(HeapVar) > 2):
     varInfo = HeapVar[2]
     address = varInfo[1]
@@ -51,9 +60,12 @@ def retrieve_heap_var_info(HeapVar):
     data_value = data_field[1][3]
     next_value = next_field[1][3]
 
+    # Getting the list to return, ready :
     vInfo = [address, struct_type, data_value, next_value]
+
     # from : http://stackoverflow.com/questions/24201926/
     # weird : "<UNINITIALIZED> string doesn't fit in the node labels
+    # the "<UNINITIALIZED>" string seems not accepted by the 'dot' language
     vInfo[:] = [x if x != "<UNINITIALIZED>" else "uninitialized" for x in vInfo]
 
   else:
