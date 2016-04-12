@@ -9,7 +9,8 @@ all-traces: thesis_LinkedList.trace
 	@../valgrind-3.11.0/inst/bin/valgrind --tool=memcheck --source-filename=$< --trace-filename=$(basename $<).vgtrace ./$(basename $<) || true
 
 %.trace: %.vgtrace ../../vg_to_opt_trace.py
-	python2.7 ../../vg_to_opt_trace.py --create_jsvar=trace $(basename $<) > $(basename $<).trace || true
+	#python2.7 ../../vg_to_opt_trace.py --create_jsvar=trace $(basename $<) > $(basename $<).trace || true
+	python2.7 ../../vg_to_opt_trace.py $(basename $<) > $(basename $<).trace || true
 
 clean:
 	rm -f *.trace *.vgtrace *.out *.o

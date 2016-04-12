@@ -27,7 +27,7 @@ def build_graph_from(obj, i):
   heap = obj["heap"]
   prev_node_vi = None
   if (len(heap) > 0):
-    for k, v in heap.items():
+    for k, v in heap.items().reverse():
       # If the heap of the current exec_point is not empty, call the
       # 'retrieve_heap_var' function to get the informations about the data on the heap
       # and put them into the 'var_info' list.
@@ -41,7 +41,7 @@ def build_graph_from(obj, i):
         newNode.attr["shape"] = "record"
         newNode.attr["label"] = str(var_info[1]) + " | Data : " + str(var_info[2]) + " | Address :\\n " + str(var_info[0]) + " | next : " + str(var_info[3])
         if prev_node_vi is not None:
-          heapG.add_edge(str(prev_node_vi[0]), str(var_info[0]), style="invis")
+          heapG.add_edge(str(prev_node_vi[0]), str(var_info[0]), style="filled")
         prev_node_vi = var_info
 
   graph_file_name = "exec_point_" + str(i)

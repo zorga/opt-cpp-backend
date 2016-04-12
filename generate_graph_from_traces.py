@@ -49,12 +49,7 @@ def main():
       # 'i' will serve for the graph image file name
       build_graph_from (infos, i)
       i = i + 1
-    # at this points, the graph should be present in the current dir
-    trace_file.close
-
-  
-
-
+    
 if __name__ == '__main__':
     main()
 
