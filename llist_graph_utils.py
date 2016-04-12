@@ -25,12 +25,13 @@ def build_graph_from(obj, i):
 
   # Non-empty heap case
   heap = obj["heap"]
+  prev_node_vi = None
   if (len(heap) > 0):
     for k, v in heap.items():
       # If the heap of the current exec_point is not empty, call the
       # 'retrieve_heap_var' function to get the informations about the data on the heap
       # and put them into the 'var_info' list.
-      # The element of this list are used to compose de nodes of the graph
+      # The element of this list are used to compose the nodes of the graph
       # Only the heap graph for now
       var_info = retrieve_heap_var_info(heap[k])
       if (var_info):
@@ -39,6 +40,9 @@ def build_graph_from(obj, i):
         newNode.attr["rankdir"] = "BT"
         newNode.attr["shape"] = "record"
         newNode.attr["label"] = str(var_info[1]) + " | Data : " + str(var_info[2]) + " | Address :\\n " + str(var_info[0]) + " | next : " + str(var_info[3])
+        if prev_node_vi is not None:
+          heapG.add_edge(str(prev_node_vi[0]), str(var_info[0]), style="invis")
+        prev_node_vi = var_info
 
   graph_file_name = "exec_point_" + str(i)
   output_graph(final_graph, graph_file_name)
