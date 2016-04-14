@@ -58,6 +58,8 @@ def build_graph_from(obj, i):
     frameG.add_subgraph(name = frame_graph_name)
     # Getting the current frame subgraph
     current_frame_graph = frameG.get_subgraph(frame_graph_name)
+    current_frame_graph.graph_attr["rankdir"] = "TB"
+    current_frame_graph.graph_attr["label"] = str(frame["func_name"]) + " Function"
     # Getting the local vars in the right order :
     json_frame_vars = json.dumps(OrderedDict(frame["encoded_locals"]), sort_keys = True)
     frame_vars = json.loads(json_frame_vars, object_pairs_hook = OrderedDict)
@@ -81,22 +83,9 @@ def build_graph_from(obj, i):
   output_graph(final_graph, graph_file_name)
       
 
-  """
-  for frame in frames:
-    print(20*"#")
-    print("function", frame["func_name"], ":")
-    json_frame_vars = json.dumps(OrderedDict(frame["encoded_locals"]), sort_keys = True)
-    frame_vars = json.loads(json_frame_vars, object_pairs_hook = OrderedDict)
-    for k in (sorted(frame_vars.keys(), reverse=True)):
-      print(k)
-  """
-
-
-
 
 def retrieve_heap_var_info(HeapVar):
   vInfo = []
-
   # It is a bit hard to understand what's going on here but I simply get the
   # information I need out of the exec_point in the .trace file.
   # Could be better written later ?
