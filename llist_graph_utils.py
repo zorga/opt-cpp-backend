@@ -1,6 +1,9 @@
 import sys
 from pygraphviz import *
 from pprint import pprint
+from collections import OrderedDict
+import json
+from pprint import pprint
 
 # Global variables :
 n_color = "#9ACEEB"
@@ -14,20 +17,25 @@ def build_graph_from(obj, i):
   heapG = final_graph.get_subgraph("clusterHeap")
   heapG.graph_attr["rankdir"] = "LR"
 
+  # Little hack to keep the initial ordering of the 'heap' entries
+  heap = obj["heap"]
+  json_format = json.dumps(OrderedDict(obj["heap"]), sort_keys = True)
+  heap = json.loads(json_format, object_pairs_hook = OrderedDict)
+
   # Only for debugging purposes...
   if (debug):
-    print("Heap state of execution point " + str(i) + " : ")
-    if (len(obj["heap"]) <= 0):
-      print("Empty heap")
-    for k, v in obj["heap"].items():
-      print(k)
-      pprint(v)
+    if (i == 24):
+      print("Heap state of execution point " + str(i) + " : ")
+      if (len(obj["heap"]) <= 0):
+        print("Empty heap")
+      for k, v in heap.items():
+        print(k)
 
   # Non-empty heap case
-  heap = obj["heap"]
   prev_node_vi = None
   if (len(heap) > 0):
-    for k, v in heap.items().reverse():
+    # Browse the keys in reverse order to keep the ordering of the llist
+    for k in (sorted(heap.keys(), reverse=True)):
       # If the heap of the current exec_point is not empty, call the
       # 'retrieve_heap_var' function to get the informations about the data on the heap
       # and put them into the 'var_info' list.
@@ -43,6 +51,8 @@ def build_graph_from(obj, i):
         if prev_node_vi is not None:
           heapG.add_edge(str(prev_node_vi[0]), str(var_info[0]), style="filled")
         prev_node_vi = var_info
+        if var_info[-1] == "NULL":
+          heapG.add_edge(str(var_info[0]), "NULL", style="filled")
 
   graph_file_name = "exec_point_" + str(i)
   output_graph(final_graph, graph_file_name)
@@ -71,6 +81,7 @@ def retrieve_heap_var_info(HeapVar):
     # weird : "<UNINITIALIZED> string doesn't fit in the node labels
     # the "<UNINITIALIZED>" string seems not accepted by the 'dot' language
     vInfo[:] = [x if x != "<UNINITIALIZED>" else "uninitialized" for x in vInfo]
+    vInfo[:] = [x if x != "0x0" else "NULL" for x in vInfo]
 
   else:
     # TODO : handle this case
