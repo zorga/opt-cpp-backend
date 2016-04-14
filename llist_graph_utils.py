@@ -14,22 +14,12 @@ debug = 0
 def build_graph_from(obj, i):
   final_graph = init_exec_point_graph()
 
+  # Heap cluster :
   heapG = final_graph.get_subgraph("clusterHeap")
-  heapG.graph_attr["rankdir"] = "LR"
 
-  # Little hack to keep the initial ordering of the 'heap' entries
-  heap = obj["heap"]
+  # Little hack to keep the initial ordering of the entries in 'heap'
   json_format = json.dumps(OrderedDict(obj["heap"]), sort_keys = True)
   heap = json.loads(json_format, object_pairs_hook = OrderedDict)
-
-  # Only for debugging purposes...
-  if (debug):
-    if (i == 24):
-      print("Heap state of execution point " + str(i) + " : ")
-      if (len(obj["heap"]) <= 0):
-        print("Empty heap")
-      for k, v in heap.items():
-        print(k)
 
   # Non-empty heap case
   prev_node_vi = None
@@ -56,6 +46,35 @@ def build_graph_from(obj, i):
 
   graph_file_name = "exec_point_" + str(i)
   output_graph(final_graph, graph_file_name)
+
+  # Frames cluster :
+  frameG = final_graph.get_subgraph("clusterFrames") 
+  frames = obj["frames"]
+  print(30*"~")
+  print("exec point ", i)
+
+  # Create a subgraph for each stack-frames
+  # of the current execution point :
+  for frame in frames:
+    frame_graph_name = "cluster_" + frame["func_name"]
+    frameG.add_subgraph(name = frame_graph_name)
+    # Getting the local vars in the right order :
+    json_frame_vars = json.dumps(OrderedDict(frame["encoded_locals"]), sort_keys = True)
+    frame_vars = json.loads(json_frame_vars, object_pairs_hook = OrderedDict)
+    # Iterating over the local vars and fill the frame graph
+    for k in (sorted(frame_vars.keys(), reverse=True)):
+      print(k)
+
+  """
+  for frame in frames:
+    print(20*"#")
+    print("function", frame["func_name"], ":")
+    json_frame_vars = json.dumps(OrderedDict(frame["encoded_locals"]), sort_keys = True)
+    frame_vars = json.loads(json_frame_vars, object_pairs_hook = OrderedDict)
+    for k in (sorted(frame_vars.keys(), reverse=True)):
+      print(k)
+  """
+
 
 
 
