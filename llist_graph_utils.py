@@ -38,32 +38,48 @@ def build_graph_from(obj, i):
         newNode.attr["rankdir"] = "BT"
         newNode.attr["shape"] = "record"
         newNode.attr["label"] = str(var_info[1]) + " | Data : " + str(var_info[2]) + " | Address :\\n " + str(var_info[0]) + " | next : " + str(var_info[3])
+        # Setting the edge with the previous node :
         if prev_node_vi is not None:
           heapG.add_edge(str(prev_node_vi[0]), str(var_info[0]), style="filled")
         prev_node_vi = var_info
+        # If the 'next' field of the current node points to NULL :
+        # Last element of the LinkedList
         if var_info[-1] == "NULL":
           heapG.add_edge(str(var_info[0]), "NULL", style="filled")
 
-  graph_file_name = "exec_point_" + str(i)
-  output_graph(final_graph, graph_file_name)
 
   # Frames cluster :
   frameG = final_graph.get_subgraph("clusterFrames") 
   frames = obj["frames"]
-  print(30*"~")
-  print("exec point ", i)
 
-  # Create a subgraph for each stack-frames
-  # of the current execution point :
   for frame in frames:
+    # Create a frame subgraph for each stack frames
     frame_graph_name = "cluster_" + frame["func_name"]
     frameG.add_subgraph(name = frame_graph_name)
+    # Getting the current frame subgraph
+    current_frame_graph = frameG.get_subgraph(frame_graph_name)
     # Getting the local vars in the right order :
     json_frame_vars = json.dumps(OrderedDict(frame["encoded_locals"]), sort_keys = True)
     frame_vars = json.loads(json_frame_vars, object_pairs_hook = OrderedDict)
-    # Iterating over the local vars and fill the frame graph
+    # Iterating over the local vars and fill the current frame sub graph
+    prev_node_vi = None
     for k in (sorted(frame_vars.keys(), reverse=True)):
-      print(k)
+      var = frame_vars[k]
+      var[:] = [x if x != "<UNINITIALIZED>" else "uninitialized" for x in var]
+      # Create a new node for the var named "k"
+      current_frame_graph.add_node(k)
+      currNode = current_frame_graph.get_node(k)
+      currNode.attr["rankdir"] = "BT"
+      currNode.attr["shape"] = "record"
+      currNode.attr["label"] = "Type : " + str(var[2]) + " | Name : " + str(k) + " | Value : " + str(var[3]) + " | Address : " + str(var[1])
+      if prev_node_vi is not None:
+        current_frame_graph.add_edge(str(prev_node_vi), str(k), style="invis")
+      prev_node_vi = k
+      # Making the pointer variables, point to their data on the heap :
+
+  graph_file_name = "exec_point_" + str(i)
+  output_graph(final_graph, graph_file_name)
+      
 
   """
   for frame in frames:
