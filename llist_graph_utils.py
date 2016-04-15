@@ -90,6 +90,7 @@ def build_graph_from(obj, i):
 
   graph_file_name = "exec_point_" + str(i)
   output_graph(final_graph, graph_file_name)
+  #gen_GIF()
       
 
 
@@ -164,6 +165,18 @@ def init_exec_point_graph():
   G.add_edge("DUMMY_FRAME", "DUMMY_HEAP", style = "invis")
 
   return G
+
+"""
+def gen_GIF():
+  file_names = sorted((fn for fn in os.listdir("img") if fn.endswith(".svg")))
+  images = [Image.open(fn) for fn in file_names]
+  size = (500, 500)
+  for im in images:
+    im.thumbnail(size, Image.ANTIALIAS)
+  print(writeGif.__doc__)
+  filename = "my_gif.GIF"
+  writeGif(filename, images, duration=0.2)
+"""
 
 def output_graph(graph, name):
   graph.layout(prog="dot")
