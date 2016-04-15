@@ -71,21 +71,22 @@ def build_graph_from(obj, i):
     # Iterating over the local vars and fill the current frame sub graph
     prev_node_vi = None
     for k in (sorted(frame_vars.keys(), reverse=True)):
-      if (i == 35):
-        pprint(frame_vars)
       var = frame_vars[k]
       var[:] = [x if x != "<UNINITIALIZED>" else "uninitialized" for x in var]
+      var[:] = [x if x != "0x0" else "NULL" for x in var]
       # Create a new node for the var named "k"
       current_frame_graph.add_node(k)
       currNode = current_frame_graph.get_node(k)
       currNode.attr["rankdir"] = "BT"
       currNode.attr["shape"] = "record"
       currNode.attr["label"] = "Type : " + str(var[2]) + " | Name : " + str(k) + " | Value : " + str(var[3]) + " | Address : " + str(var[1])
+
       if prev_node_vi is not None:
         current_frame_graph.add_edge(str(prev_node_vi), str(k), style="invis")
       prev_node_vi = k
       # Making the pointer variables, point to their data on the heap :
-      #TODO
+      if (k == "head" and not str(var[3]) == "uninitialized"):
+        final_graph.add_edge(str(k), str(var[3]), style = "filled")
 
   graph_file_name = "exec_point_" + str(i)
   output_graph(final_graph, graph_file_name)
@@ -128,9 +129,8 @@ def init_exec_point_graph():
   # Defining graph attributes :
   G = AGraph(strict=False, directed=True, rankdir="LR")
   #G.graph_attr["nodesep"] = 1.5
-
-  # Defining edge attributes :
-  G.edge_attr["color"] = e_color
+  G.graph_attr["rankdir"]  = "LR"
+  G.graph_attr["rank"] = "same"
 
   # Defining the node attributes
   G.node_attr["color"] = n_color
@@ -140,6 +140,7 @@ def init_exec_point_graph():
   clusFrame.graph_attr["rankdir"] = "TB"
   clusFrame.graph_attr["color"] = "grey"
   clusFrame.graph_attr["label"] = "Stack Frames"
+  clusFrame.graph_attr["rank"] = "same"
   # Dummy node (hack to link the cluster and avoir overlaps) :
   clusFrame.add_node("DUMMY_FRAME")
   node_frame = clusFrame.get_node("DUMMY_FRAME")
@@ -151,6 +152,7 @@ def init_exec_point_graph():
   clusHeap.graph_attr["rankdir"] = "LR"
   clusHeap.graph_attr["color"] = "indigo"
   clusHeap.graph_attr["label"] = "Heap"
+  clusHeap.graph_attr["rank"] = "same"
   clusHeap.node_attr["fixedsize"] = "False"
   # Dummy node (hack to link the cluster and avoir overlaps) :
   clusHeap.add_node("DUMMY_HEAP")
