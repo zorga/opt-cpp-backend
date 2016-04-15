@@ -60,6 +60,11 @@ def build_graph_from(obj, i):
     current_frame_graph = frameG.get_subgraph(frame_graph_name)
     current_frame_graph.graph_attr["rankdir"] = "TB"
     current_frame_graph.graph_attr["label"] = str(frame["func_name"]) + " Function"
+    # Dummy node (hack to link the cluster and avoir overlaps) :
+    current_frame_graph.add_node("DUMMY_" + str(i))
+    node_frame = current_frame_graph.get_node("DUMMY_" + str(i))
+    node_frame.attr["shape"] = "point"
+    node_frame.attr["style"] = "invis"
     # Getting the local vars in the right order :
     json_frame_vars = json.dumps(OrderedDict(frame["encoded_locals"]), sort_keys = True)
     frame_vars = json.loads(json_frame_vars, object_pairs_hook = OrderedDict)
@@ -132,6 +137,11 @@ def init_exec_point_graph():
   clusFrame.graph_attr["rankdir"] = "TB"
   clusFrame.graph_attr["color"] = "grey"
   clusFrame.graph_attr["label"] = "Stack Frames"
+  # Dummy node (hack to link the cluster and avoir overlaps) :
+  clusFrame.add_node("DUMMY_FRAME")
+  node_frame = clusFrame.get_node("DUMMY_FRAME")
+  node_frame.attr["shape"] = "point"
+  node_frame.attr["style"] = "invis"
 
   # Defining Heap cluster
   clusHeap = G.add_subgraph(name = "clusterHeap")
@@ -139,6 +149,11 @@ def init_exec_point_graph():
   clusHeap.graph_attr["color"] = "indigo"
   clusHeap.graph_attr["label"] = "Heap"
   clusHeap.node_attr["fixedsize"] = "True"
+  # Dummy node (hack to link the cluster and avoir overlaps) :
+  clusHeap.add_node("DUMMY_HEAP")
+  node_heap = clusHeap.get_node("DUMMY_HEAP")
+  node_heap.attr["shape"] = "point"
+  node_heap.attr["style"] = "invis"
 
   return G
 
