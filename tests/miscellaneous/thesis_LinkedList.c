@@ -286,26 +286,26 @@ node_t* buildWithLocalRef (int a)
   return head;
 }
 
-int free_list (node_t** head)
+int free_list (node_t** headRef)
   /* delete and free all the memory used by the list
      using a reference pointer to the head of the list
      returns 0 if success, -1 otherwise */
 {
-  if (!(*head))
+  if (!(*headRef))
   {
     fprintf(stderr, "free_list : NULL pointer error\n");
     return -1;
   }
 
-  while (*head != NULL)
+  while (*headRef != NULL)
   {
-    node_t* oldPtr = *head;
-    *head= (*head)->next;
+    node_t* oldPtr = *headRef;
+    *headRef = (*headRef)->next;
     free (oldPtr);
     oldPtr = NULL; // setting an unused pointer to NULL (defensive style)
   }
-  free (*head);
-  *head = NULL;
+  free (*headRef);
+  *headRef = NULL;
   return 0;
 }
 

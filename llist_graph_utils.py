@@ -71,6 +71,8 @@ def build_graph_from(obj, i):
     # Iterating over the local vars and fill the current frame sub graph
     prev_node_vi = None
     for k in (sorted(frame_vars.keys(), reverse=True)):
+      if (i == 35):
+        pprint(frame_vars)
       var = frame_vars[k]
       var[:] = [x if x != "<UNINITIALIZED>" else "uninitialized" for x in var]
       # Create a new node for the var named "k"
@@ -83,6 +85,7 @@ def build_graph_from(obj, i):
         current_frame_graph.add_edge(str(prev_node_vi), str(k), style="invis")
       prev_node_vi = k
       # Making the pointer variables, point to their data on the heap :
+      #TODO
 
   graph_file_name = "exec_point_" + str(i)
   output_graph(final_graph, graph_file_name)
@@ -124,7 +127,7 @@ def retrieve_heap_var_info(HeapVar):
 def init_exec_point_graph():
   # Defining graph attributes :
   G = AGraph(strict=False, directed=True, rankdir="LR")
-  G.graph_attr["nodesep"] = 1.5
+  #G.graph_attr["nodesep"] = 1.5
 
   # Defining edge attributes :
   G.edge_attr["color"] = e_color
@@ -148,12 +151,15 @@ def init_exec_point_graph():
   clusHeap.graph_attr["rankdir"] = "LR"
   clusHeap.graph_attr["color"] = "indigo"
   clusHeap.graph_attr["label"] = "Heap"
-  clusHeap.node_attr["fixedsize"] = "True"
+  clusHeap.node_attr["fixedsize"] = "False"
   # Dummy node (hack to link the cluster and avoir overlaps) :
   clusHeap.add_node("DUMMY_HEAP")
   node_heap = clusHeap.get_node("DUMMY_HEAP")
   node_heap.attr["shape"] = "point"
   node_heap.attr["style"] = "invis"
+
+  # Link the subgraphs together to fix position :
+  G.add_edge("DUMMY_FRAME", "DUMMY_HEAP", style = "invis")
 
   return G
 
