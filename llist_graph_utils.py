@@ -3,25 +3,36 @@ from pygraphviz import *
 from pprint import pprint
 from collections import OrderedDict
 import json
+import random
 from pprint import pprint
 
-# Global variables :
-n_color = "#9ACEEB"
-e_color = "#FCD975"
 # For debugging :
 debug = 0
 
+
+
 def build_graph_from(obj, i):
+  """
+  This function builds the graphics representation of an execution point and output the
+  source-code of the graph and the graph itself in SVG format.
+
+  Args:
+    obj (dict): a dictionnary describing the current execution point
+
+    i (int): The sequence number of the current execution point
+
+  """
   final_graph = init_exec_point_graph()
 
-  # Heap cluster :
+  # getting the heap cluster :
   heapG = final_graph.get_subgraph("clusterHeap")
 
   # Little hack to keep the initial ordering of the entries in 'heap'
+  # Seen on stackoverflow
   json_format = json.dumps(OrderedDict(obj["heap"]), sort_keys = True)
   heap = json.loads(json_format, object_pairs_hook = OrderedDict)
 
-  # Non-empty heap case
+  # Heap cluster :
   prev_node_vi = None
   if (len(heap) > 0):
     # Browse the keys in reverse order to keep the ordering of the llist
@@ -37,29 +48,33 @@ def build_graph_from(obj, i):
         newNode = heapG.get_node(var_info[0])
         newNode.attr["rankdir"] = "BT"
         newNode.attr["shape"] = "record"
-        newNode.attr["label"] = str(var_info[1]) + " | Data : " + str(var_info[2]) + " | Address :\\n " + str(var_info[0]) + " | next : " + str(var_info[3])
+        newNode.attr["label"] = str(var_info[1]) + " | Data : " + str(var_info[2]) + " | Addr :\\n " + str(var_info[0]) + " | next : " + str(var_info[3])
         # Setting the edge with the previous node :
         if prev_node_vi is not None:
-          heapG.add_edge(str(prev_node_vi[0]), str(var_info[0]), style="filled")
+          heapG.add_edge(str(prev_node_vi[0]), str(var_info[0]), style="filled", label="next")
         prev_node_vi = var_info
         # If the 'next' field of the current node points to NULL :
         # Last element of the LinkedList
         if var_info[-1] == "NULL":
-          heapG.add_edge(str(var_info[0]), "NULL", style="filled")
-
+          heapG.add_node("NULL")
+          heapG.add_edge(str(var_info[0]), "NULL", style="filled", label="next")
+  else:
+    pass
+    #TODO : something to handle here ?
 
   # Frames cluster :
   frameG = final_graph.get_subgraph("clusterFrames") 
   frames = obj["frames"]
 
   for frame in frames:
-    # Create a frame subgraph for each stack frames
+    # Create a frame subgraph for the current stack frame
     frame_graph_name = "cluster_" + frame["func_name"]
     frameG.add_subgraph(name = frame_graph_name)
-    # Getting the current frame subgraph
+    # Getting the current frame subgraph to modify its attributes
     current_frame_graph = frameG.get_subgraph(frame_graph_name)
     current_frame_graph.graph_attr["rankdir"] = "TB"
     current_frame_graph.graph_attr["label"] = str(frame["func_name"]) + " Function"
+    current_frame_graph.graph_attr["color"] = "#FC0404"
     # Dummy node (hack to link the cluster and avoir overlaps) :
     current_frame_graph.add_node("DUMMY_" + str(i))
     node_frame = current_frame_graph.get_node("DUMMY_" + str(i))
@@ -79,7 +94,7 @@ def build_graph_from(obj, i):
       currNode = current_frame_graph.get_node(k)
       currNode.attr["rankdir"] = "BT"
       currNode.attr["shape"] = "record"
-      currNode.attr["label"] = "Type : " + str(var[2]) + " | Name : " + str(k) + " | Value : " + str(var[3]) + " | Address : " + str(var[1])
+      currNode.attr["label"] = "Type : " + str(var[2]) + " | Name : " + str(k) + " | Value : " + str(var[3]) + " | Addr : " + str(var[1])
 
       if prev_node_vi is not None:
         current_frame_graph.add_edge(str(prev_node_vi), str(k), style="invis")
@@ -90,16 +105,19 @@ def build_graph_from(obj, i):
 
   graph_file_name = "exec_point_" + str(i)
   output_graph(final_graph, graph_file_name)
-  #gen_GIF()
       
 
 
 def retrieve_heap_var_info(HeapVar):
+  """
+  parses the entries of the 'heap' dict of an execution point and return the needed
+  informations in the 'vInfo' list
+  """
   vInfo = []
-  # It is a bit hard to understand what's going on here but I simply get the
-  # information I need out of the exec_point in the .trace file.
-  # Could be better written later ?
   if (len(HeapVar) > 2):
+    # If the size of the HeapVar list (which is a value in the 'heap' dict, describing
+    # a dynamically allocated variable), is smaller of equals to 2, it means the associated
+    # data have been freed at this point of the execution
     varInfo = HeapVar[2]
     address = varInfo[1]
     struct_type = varInfo[2]
@@ -107,10 +125,8 @@ def retrieve_heap_var_info(HeapVar):
     next_field = varInfo[4]
     data_value = data_field[1][3]
     next_value = next_field[1][3]
-
     # Getting the list to return, ready :
     vInfo = [address, struct_type, data_value, next_value]
-
     # from : http://stackoverflow.com/questions/24201926/
     # weird : "<UNINITIALIZED> string doesn't fit in the node labels
     # the "<UNINITIALIZED>" string seems not accepted by the 'dot' language
@@ -120,6 +136,7 @@ def retrieve_heap_var_info(HeapVar):
   else:
     # TODO : handle this case
     if (debug):
+      pprint(HeapVar)
       print("HEAP VAR FREED")
 
   return vInfo
@@ -127,22 +144,24 @@ def retrieve_heap_var_info(HeapVar):
 
 
 def init_exec_point_graph():
+  """
+  Initialize the graph for the execution point with empty subgraphs
+  """
   # Defining graph attributes :
   G = AGraph(strict=False, directed=True, rankdir="LR")
-  #G.graph_attr["nodesep"] = 1.5
   G.graph_attr["rankdir"]  = "LR"
   G.graph_attr["rank"] = "same"
 
   # Defining the node attributes
-  G.node_attr["color"] = n_color
+  G.node_attr["color"] = "#204CB2"
 
   # Defining Frames cluster
   clusFrame = G.add_subgraph(name = "clusterFrames")
   clusFrame.graph_attr["rankdir"] = "TB"
-  clusFrame.graph_attr["color"] = "grey"
+  clusFrame.graph_attr["color"] = "#7C7E14"
   clusFrame.graph_attr["label"] = "Stack Frames"
-  clusFrame.graph_attr["rank"] = "same"
-  # Dummy node (hack to link the cluster and avoir overlaps) :
+  #clusFrame.graph_attr["rank"] = "same"
+  # Dummy node (hack to link the clusters and avoir overlaps) :
   clusFrame.add_node("DUMMY_FRAME")
   node_frame = clusFrame.get_node("DUMMY_FRAME")
   node_frame.attr["shape"] = "point"
@@ -151,11 +170,11 @@ def init_exec_point_graph():
   # Defining Heap cluster
   clusHeap = G.add_subgraph(name = "clusterHeap")
   clusHeap.graph_attr["rankdir"] = "LR"
-  clusHeap.graph_attr["color"] = "indigo"
+  clusHeap.graph_attr["color"] = "#FC0404"
   clusHeap.graph_attr["label"] = "Heap"
-  clusHeap.graph_attr["rank"] = "same"
+  #clusHeap.graph_attr["rank"] = "same"
   clusHeap.node_attr["fixedsize"] = "False"
-  # Dummy node (hack to link the cluster and avoir overlaps) :
+  # Dummy node (hack to link the clusters and avoir overlaps) :
   clusHeap.add_node("DUMMY_HEAP")
   node_heap = clusHeap.get_node("DUMMY_HEAP")
   node_heap.attr["shape"] = "point"
@@ -166,17 +185,7 @@ def init_exec_point_graph():
 
   return G
 
-"""
-def gen_GIF():
-  file_names = sorted((fn for fn in os.listdir("img") if fn.endswith(".svg")))
-  images = [Image.open(fn) for fn in file_names]
-  size = (500, 500)
-  for im in images:
-    im.thumbnail(size, Image.ANTIALIAS)
-  print(writeGif.__doc__)
-  filename = "my_gif.GIF"
-  writeGif(filename, images, duration=0.2)
-"""
+
 
 def output_graph(graph, name):
   graph.layout(prog="dot")
