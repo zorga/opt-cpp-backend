@@ -26,29 +26,58 @@ def build_graph_from(obj, i):
 
   # getting the heap cluster :
   heapG = final_graph.get_subgraph("clusterHeap")
+  frameG = final_graph.get_subgraph("clusterFrames") 
 
   # Little hack to keep the initial ordering of the entries in 'heap'
   # Seen on stackoverflow
   json_format = json.dumps(OrderedDict(obj["heap"]), sort_keys = True)
   heap = json.loads(json_format, object_pairs_hook = OrderedDict)
 
-  # Heap cluster :
+  # Filling in the graphs...
+  heapG = make_heap_graph(heap, heapG)
+  frames = obj["frames"]
+  frameG = make_stack_frames_graph(frames, frameG, final_graph)
+
+  # Output the resulting graph to file
+  graph_file_name = "exec_point_" + str(i)
+  output_graph(final_graph, graph_file_name)
+      
+
+
+def make_heap_graph(heap, heapG):
+  """
+  Build the graph representing the heap state at the current execution point.
+  
+  Args:
+    heap (dict): a dictionnary describing the content of the heap at that point
+
+    heapG (graph object): the initial graph representing the heap
+
+  Returns:
+    graph object: The heap graph of the current execution point
+
+  """
   prev_node_vi = None
   if (len(heap) > 0):
-    # Browse the keys in reverse order to keep the ordering of the llist
     for k in (sorted(heap.keys(), reverse=True)):
-      # If the heap of the current exec_point is not empty, call the
-      # 'retrieve_heap_var' function to get the informations about the data on the heap
-      # and put them into the 'var_info' list.
-      # The element of this list are used to compose the nodes of the graph
-      # Only the heap graph for now
+      """
+      Call the 'retrieve_heap_var_info' func with each element in the 'heap' dict
+      to get the required informations about each element on the heap at the
+      current execution point and build the nodes from these informations
+      (Browse the keys in reverse order to keep the ordering of the LinkedList)
+      """
       var_info = retrieve_heap_var_info(heap[k])
       if (var_info):
         heapG.add_node(var_info[0])
         newNode = heapG.get_node(var_info[0])
         newNode.attr["rankdir"] = "BT"
         newNode.attr["shape"] = "record"
-        newNode.attr["label"] = str(var_info[1]) + " | Data : " + str(var_info[2]) + " | Addr :\\n " + str(var_info[0]) + " | next : " + str(var_info[3])
+        # Composing the node label in an elegant way : 
+        l1 = str(var_info[1]) # Struct type
+        l2 = " | Data : " + str(var_info[2]) # Data field
+        l3 = " | Addr : \\n " + str(var_info[0]) # Addr field
+        l4 = " | next : " + str(var_info[3]) # Next field
+        newNode.attr["label"] = l1 + l2 + l3 + l4
         # Setting the edge with the previous node :
         if prev_node_vi is not None:
           heapG.add_edge(str(prev_node_vi[0]), str(var_info[0]), style="filled", label="next")
@@ -60,58 +89,98 @@ def build_graph_from(obj, i):
           heapG.add_edge(str(var_info[0]), "NULL", style="filled", label="next")
   else:
     pass
-    #TODO : something to handle here ?
 
-  # Frames cluster :
-  frameG = final_graph.get_subgraph("clusterFrames") 
-  frames = obj["frames"]
+  return heapG
+
+
+
+def make_stack_frames_graph(frames, frameG, final_graph):
+  """
+  Fill in the initial empty stack frames graph with a subgraph representing each stack frames in the
+  current execution point.
+  
+  Args:
+    frames (list): a list containing the state of the stack frames of the current exec point
+
+    frameG (graph object): an object holding the current state of the frames subgraph
+
+    final_graph (graph_object): the entire final graph (required here to add edges between the pointer
+    in the stack frames and their corresponding data on the heap)
+
+  Returns:
+    graph object: the filled in frame subgraph containing the stack frames representation of the ones
+    contained in the current execution point
+
+  """
 
   for frame in frames:
     # Create a frame subgraph for the current stack frame
     frame_graph_name = "cluster_" + frame["func_name"]
     frameG.add_subgraph(name = frame_graph_name)
+
     # Getting the current frame subgraph to modify its attributes
     current_frame_graph = frameG.get_subgraph(frame_graph_name)
     current_frame_graph.graph_attr["rankdir"] = "TB"
     current_frame_graph.graph_attr["label"] = str(frame["func_name"]) + " Function"
     current_frame_graph.graph_attr["color"] = "#FC0404"
-    # Dummy node (hack to link the cluster and avoir overlaps) :
-    current_frame_graph.add_node("DUMMY_" + str(i))
-    node_frame = current_frame_graph.get_node("DUMMY_" + str(i))
+
+    # Dummy node (hack to link the cluster and avoid overlaps) :
+    current_frame_graph.add_node("DUMMY_" + str(frame["func_name"]))
+    node_frame = current_frame_graph.get_node("DUMMY_" + str(frame["func_name"]))
     node_frame.attr["shape"] = "point"
     node_frame.attr["style"] = "invis"
+
     # Getting the local vars in the right order :
     json_frame_vars = json.dumps(OrderedDict(frame["encoded_locals"]), sort_keys = True)
     frame_vars = json.loads(json_frame_vars, object_pairs_hook = OrderedDict)
-    # Iterating over the local vars and fill the current frame sub graph
+
+    # Iterating over the local vars and fill the current frame subgraph
     prev_node_vi = None
     for k in (sorted(frame_vars.keys(), reverse=True)):
       var = frame_vars[k]
       var[:] = [x if x != "<UNINITIALIZED>" else "uninitialized" for x in var]
       var[:] = [x if x != "0x0" else "NULL" for x in var]
+
       # Create a new node for the var named "k"
       current_frame_graph.add_node(k)
       currNode = current_frame_graph.get_node(k)
       currNode.attr["rankdir"] = "BT"
       currNode.attr["shape"] = "record"
-      currNode.attr["label"] = "Type : " + str(var[2]) + " | Name : " + str(k) + " | Value : " + str(var[3]) + " | Addr : " + str(var[1])
-
+      # Composing the node label in an elegant way
+      l1 = "Type : " + str(var[2])
+      l2 = " | Name : " + str(k)
+      l3 = " | Value : " + str(var[3])
+      l4 = " | Addr : " + str(var[1])
+      currNode.attr["label"] = l1 + l2 + l3 + l4
+      # Adding invisible edges between nodes to avoid overlapping
       if prev_node_vi is not None:
         current_frame_graph.add_edge(str(prev_node_vi), str(k), style="invis")
       prev_node_vi = k
       # Making the pointer variables, point to their data on the heap :
+      # Only update the head pointer for now, actually
       if (k == "head" and not str(var[3]) == "uninitialized"):
+        if str(var[3]) == "NULL":
+          heapG = final_graph.get_subgraph("clusterHeap")
+          if "NULL" not in final_graph.nodes():
+            heapG.add_node("NULL")
         final_graph.add_edge(str(k), str(var[3]), style = "filled")
+            
 
-  graph_file_name = "exec_point_" + str(i)
-  output_graph(final_graph, graph_file_name)
-      
+  return frameG
+
 
 
 def retrieve_heap_var_info(HeapVar):
   """
   parses the entries of the 'heap' dict of an execution point and return the needed
   informations in the 'vInfo' list
+
+  Args:
+    HeapVar (list): a list containing informations about a variable on the heap
+
+  Returns:
+    list: a list containing the required informations to build a node representing the heap var
+
   """
   vInfo = []
   if (len(HeapVar) > 2):
@@ -127,17 +196,11 @@ def retrieve_heap_var_info(HeapVar):
     next_value = next_field[1][3]
     # Getting the list to return, ready :
     vInfo = [address, struct_type, data_value, next_value]
-    # from : http://stackoverflow.com/questions/24201926/
-    # weird : "<UNINITIALIZED> string doesn't fit in the node labels
-    # the "<UNINITIALIZED>" string seems not accepted by the 'dot' language
     vInfo[:] = [x if x != "<UNINITIALIZED>" else "uninitialized" for x in vInfo]
     vInfo[:] = [x if x != "0x0" else "NULL" for x in vInfo]
 
   else:
-    # TODO : handle this case
-    if (debug):
-      pprint(HeapVar)
-      print("HEAP VAR FREED")
+    pass
 
   return vInfo
 
@@ -145,7 +208,11 @@ def retrieve_heap_var_info(HeapVar):
 
 def init_exec_point_graph():
   """
-  Initialize the graph for the execution point with empty subgraphs
+  Initialize the graph for the execution point with empty subgraphs.
+
+  Returns:
+    graph object: the initial empty execution point graph representation
+
   """
   # Defining graph attributes :
   G = AGraph(strict=False, directed=True, rankdir="LR")
@@ -188,6 +255,16 @@ def init_exec_point_graph():
 
 
 def output_graph(graph, name):
+  """
+  A simple function to ouput the source-code of the produced graph
+  and the SVG files containing the graphics
+
+  Args:
+    graph (graph object): the final graph of the current execution point
+
+    name (String): the name of the current graph
+
+  """
   graph.layout(prog="dot")
   graph.draw("img/" + name + ".svg")
   graph.write("dots/" + name + ".dot")
