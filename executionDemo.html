@@ -1,16 +1,45 @@
 <!DOCTYPE html>
 <html>
+<head>
+  <meta charset="UTF-8">
+</head>
 <body>
 
 <h1>Execution steps browser</h1>
 
+<!-- Include required JS files for code highlighting -->
+<script type="text/javascript" src="/home/nico/coding/js/syntaxhighlighter_3.0.83/scripts/shCore.js"></script>
+<!-- JS file for C and C++ code highlighting -->
+<script type="text/javascript" src="/home/nico/coding/js/syntaxhighlighter_3.0.83/scripts/shBrushCpp.js"></script>
+<!-- Include the core style and default theme for SyntaxHighlighter -->
+<link href="/home/nico/coding/js/syntaxhighlighter_3.0.83/styles/shCore.css" rel="stylesheet" type="text/css" />
+<link href="/home/nico/coding/js/syntaxhighlighter_3.0.83/styles/shThemeDefault.css" rel="stylesheet" type="text/css" />
+<!-- Google API for jQuery -->
+<script type="text/javascript" src="/home/nico/coding/js/jquery-2.2.3.min.js"></script>
+
+<!-- To actually run the highlighter... -->
 <script type="text/javascript">
+  SyntaxHighlighter.all()
+</script>
 
-var trace = 
-<button type="button"
-onclick="document.getElementById('demo').innerHTML = Date()">
-Click me to display Date and Time.</button>
-
+<!-- Get and parse the trace file from the web server inside the INGI network -->
+<script type="text/javascript">
+// Start ajax request from retrieving the trace file from the web server :
+// This is from : http://code.runnable.com/UhY_jE3QH-IlAAAP/how-to-parse-a-json-file-using-jquery
+// Need to establish a ssh tunnel if run from personnal laptop because web server is not reachable from outside the INGI network
+$.ajax({
+  //url: "http://localhost:9000/thesis_LinkedList.trace",
+  url: "http://130.104.78.197/thesis_LinkedList.trace",
+  dataType: "jsonp",
+  crossDomain: true,
+  data: {
+    format: "json"
+  },
+  success: function(data) {
+    var json = $.parseJSON(data);
+    alert(data);
+  }
+});
 </script>
 
 <p id="demo"></p>
