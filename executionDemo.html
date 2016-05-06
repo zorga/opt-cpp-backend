@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Access-Control-Allow-Origin" content="*"/>
 </head>
 <body>
 
@@ -30,19 +31,49 @@
 $.ajax({
   //url: "http://localhost:9000/thesis_LinkedList.trace",
   url: "http://130.104.78.197/thesis_LinkedList.trace",
-  dataType: "jsonp",
+  dataType: "json",
   crossDomain: true,
-  data: {
-    format: "json"
-  },
   success: function(data) {
     var json = $.parseJSON(data);
     alert(data);
   }
 });
+
+/*var invocation = new XMLHttpRequest();
+var url = "http://localhost:9000/thesis_LinkedList.trace";
+
+function callOtherDomain()
+{
+  if (invocation)
+  {
+    invocation.open("GET", url, true);
+    invocation.onreadystatechange = handler;
+    invocation.send();
+  }
+}
+
+function handler(evtXHR)
+{
+  if (invocation.status = 200)
+  {
+    var response = invocation.responseXML;
+    var invocationHistory = response.getElementsByTagName('invocationHistory').item(0).firstChild.data;
+    var invocationHistoryText = document.createTextNode(invocationHistory);
+    var textDiv = document.getElementById("textDiv");
+    textDiv.appendChild(invocationHistoryText);
+  }
+  else
+  {
+    alert("Invocation Errors Occured");
+  }
+}*/
 </script>
 
-<p id="demo"></p>
+<form id="controlsToInvoke" action="">
+  <p>
+  <input type="button" value="Get trace file" onclick="callOtherDomain()" />
+  </p>
+</form>
 
 </body>
 </html>
