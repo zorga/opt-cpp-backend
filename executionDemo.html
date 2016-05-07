@@ -24,49 +24,33 @@
 </script>
 
 <!-- Get and parse the trace file from the web server inside the INGI network -->
-<script type="text/javascript">
+<script type="text/javascript"> 
+
 // Start ajax request from retrieving the trace file from the web server :
 // This is from : http://code.runnable.com/UhY_jE3QH-IlAAAP/how-to-parse-a-json-file-using-jquery
 // Need to establish a ssh tunnel if run from personnal laptop because web server is not reachable from outside the INGI network
-$.ajax({
-  //url: "http://localhost:9000/thesis_LinkedList.trace",
-  url: "http://130.104.78.197/thesis_LinkedList.trace",
-  dataType: "json",
-  crossDomain: true,
-  success: function(data) {
-    var json = $.parseJSON(data);
-    alert(data);
-  }
-});
 
-/*var invocation = new XMLHttpRequest();
-var url = "http://localhost:9000/thesis_LinkedList.trace";
-
-function callOtherDomain()
-{
-  if (invocation)
-  {
-    invocation.open("GET", url, true);
-    invocation.onreadystatechange = handler;
-    invocation.send();
-  }
+function loadJSON(callback) {
+  var xobj = new XMLHttpRequest();
+  xobj.overrideMimeType("application/json");
+  xobj.open("GET", "http://localhost/thesis_LinkedList.trace", true);
+  xobj.onreadystatechange = function() {
+    if (xobj.readyState == 4 && xobj.status == "200") {
+      callback(xobj.responseText);
+    }
+  };
+  xobj.send(null);
 }
 
-function handler(evtXHR)
-{
-  if (invocation.status = 200)
-  {
-    var response = invocation.responseXML;
-    var invocationHistory = response.getElementsByTagName('invocationHistory').item(0).firstChild.data;
-    var invocationHistoryText = document.createTextNode(invocationHistory);
-    var textDiv = document.getElementById("textDiv");
-    textDiv.appendChild(invocationHistoryText);
-  }
-  else
-  {
-    alert("Invocation Errors Occured");
-  }
-}*/
+function init () {
+  loadJSON(function(response) {
+    var json = JSON.parse(response);
+    alert(json.code);
+  });
+}
+
+init();
+   
 </script>
 
 <form id="controlsToInvoke" action="">
