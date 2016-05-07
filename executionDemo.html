@@ -15,22 +15,24 @@
 <!-- Include the core style and default theme for SyntaxHighlighter -->
 <link href="/home/nico/coding/js/syntaxhighlighter_3.0.83/styles/shCore.css" rel="stylesheet" type="text/css" />
 <link href="/home/nico/coding/js/syntaxhighlighter_3.0.83/styles/shThemeDefault.css" rel="stylesheet" type="text/css" />
-<!-- Google API for jQuery -->
-<script type="text/javascript" src="/home/nico/coding/js/jquery-2.2.3.min.js"></script>
+<!-- Include the required files for CodeMirror (codemirror.net) -->
+<script src="/home/nico/coding/CodeMirror/lib/codemirror.js"></script>
+<link rel="stylesheet" href="/home/nico/coding/CodeMirror/lib/codemirror.css">
+<script src="/home/nico/coding/CodeMirror/mode/javascript/javascript.js"></script>
 
 <!-- To actually run the highlighter... -->
 <script type="text/javascript">
   SyntaxHighlighter.all()
 </script>
 
+<div id="sourceCode"></div>
+
 <!-- Get and parse the trace file from the web server inside the INGI network -->
 <script type="text/javascript"> 
 
 // Start ajax request from retrieving the trace file from the web server :
-// This is from : http://code.runnable.com/UhY_jE3QH-IlAAAP/how-to-parse-a-json-file-using-jquery
-// Need to establish a ssh tunnel if run from personnal laptop because web server is not reachable from outside the INGI network
 
-function loadJSON(callback) {
+function loadTraceFile(callback) {
   var xobj = new XMLHttpRequest();
   xobj.overrideMimeType("application/json");
   xobj.open("GET", "http://localhost/thesis_LinkedList.trace", true);
@@ -39,25 +41,51 @@ function loadJSON(callback) {
       callback(xobj.responseText);
     }
   };
-  xobj.send(null);
+  xobj.send();
 }
 
-function init () {
-  loadJSON(function(response) {
-    var json = JSON.parse(response);
-    alert(json.code);
+
+/*
+* 'source' is the string representing the source code of the C program
+*/
+function displaySourceCode (source) {
+  // this display the source code to the page but badly formatted
+  var myCodeMirror = CodeMirror(document.body, {
+    value: source,
+    mode: "javascript",
+    readOnly: true,
+    lineNumbers: true
+  }); 
+}
+
+/*
+* get the response from the HTTP request and parse the trace (json) file into
+* a JS object
+* Then we can do whatever whe want with that object beginning by displaying the
+* code on the html page
+*/
+function handleJsonObject() {
+  loadTraceFile(function(response) {
+    // parse JSON string into object
+    var json_object = JSON.parse(response);
+    // displaying the source-code by passing the 'code' entry of the trace file
+    displaySourceCode(json_object.code);
+    // Do something with json_object...
   });
 }
 
-init();
-   
-</script>
+/*
+* It's only a convention because 'main' functions doesn't exist in JS
+*/
+function main () {
+  //TODO
+}
 
-<form id="controlsToInvoke" action="">
-  <p>
-  <input type="button" value="Get trace file" onclick="callOtherDomain()" />
-  </p>
-</form>
+// Calling the 'main' function to start everything !
+handleJsonObject();
+ 
+
+</script>
 
 </body>
 </html>
