@@ -25,7 +25,10 @@
   SyntaxHighlighter.all()
 </script>
 
-<div id="sourceCode"></div>
+<div id="container" style="width:100%;">
+  <div id="left" style="float:left; width:50%;"> Your code. </div>
+  <div id="right" style="float:right; width:50%;"> Memory state. </div>
+<div>
 
 <!-- Get and parse the trace file from the web server inside the INGI network -->
 <script type="text/javascript"> 
@@ -50,7 +53,7 @@ function loadTraceFile(callback) {
 */
 function displaySourceCode (source) {
   // this display the source code to the page but badly formatted
-  var myCodeMirror = CodeMirror(document.body, {
+  var myCodeMirror = CodeMirror(document.getElementById("left"), {
     value: source,
     mode: "javascript",
     readOnly: true,
