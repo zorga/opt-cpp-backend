@@ -40,6 +40,7 @@
     <div id="codeEditor"></div>
     <div id="buttonsPanel">
       <center id="c">
+        <button onclick="initLoop()">Reset Execution</button>
         <button onclick="steps(false)">Previous step</button>
         <button onclick="steps(true);">Next step</button>
         <p id="progression">Current Execution Point : </p>
@@ -106,11 +107,12 @@ function getExecPointImage (currExecPointObject, i) {
 * This is needed to avoid having all the images and all the accumulated
 * highlighted lines on the same page...
 */
-function clear(curr_line) {
+function clear() {
   // delete the displayed image :
   var imageZone = document.getElementById("ExecImages"); 
   var image = document.getElementById("curr_exec_image");
-  imageZone.removeChild(image);
+  if (image)
+    imageZone.removeChild(image);
   // "un-highlight" the current line :
   //var codeMirror = this.codeMirror;
   //console.log("clear line number : " + curr_line);
@@ -137,11 +139,12 @@ function displaySourceCode(source) {
 /*
 * initialization of the execution loop
 */
-function initLoop(ExecutionPoints) {
-  getExecPointImage(ExecutionPoints[0], 0);
+function initLoop() {
+  clear();
+  getExecPointImage(this.ExecPoints[0], 0);
   // Put the needed info into object to get them in the next steps :
   this.currExecPointNumber = 0;
-  this.ExecPoints = ExecutionPoints;
+  //this.ExecPoints = ExecutionPoints;
   displayProgression();
 }
 
@@ -169,7 +172,7 @@ function steps(isNext) {
   var ExecutionPoints = this.ExecPoints;
   var currExecPointObject = ExecutionPoints[curr_i];
   // clear the page to remove previous exec point data :
-  clear(currExecPointObject.line);
+  clear();
   // check which button has been pressed and perform the right operation :
   if (isNext && curr_i < total - 1)
     curr_i++;
@@ -194,7 +197,8 @@ function handleJsonObject() {
     // displaying the source-code by passing the 'code' entry of the trace file
     displaySourceCode(json_object.code);
     // execution loop :
-    initLoop(json_object.trace);
+    this.ExecPoints = (json_object.trace);
+    initLoop();
   });
 }
 
