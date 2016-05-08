@@ -125,25 +125,25 @@ function displaySourceCode(source) {
 * initialization of the execution loop
 */
 function initLoop() {
+  // clear the page to remove previous exec point image:
   clear();
   var codeMirror = this.codeMirror;
-  // "un-highlight" the previous highlighted line :
-
   getExecPointImage(this.ExecPoints[0], 0);
   // Put the needed info into object to get them in the next steps :
   this.currExecPointNumber = 0;
   displayProgression();
   curr_line = this.ExecPoints[0].line;
+  // "un-highlight" the previous highlighted line :
   if (this.previousLine && this.previousLine != curr_line)
   {
     codeMirror.addLineClass(this.previousLine - 1, 'background', 'default');
+    console.log("INITLOOP FUNCTION : previous line : " + this.previousLine);
+    console.log("INITLOOP FUNCTION : current line: " + currLine);
   }
-  console.log("initLoop : curr_line : " + curr_line);
   // decrement the line number because the lines begin at '0' in CodeMirror API :
   codeMirror.addLineClass(curr_line - 1, 'background', 'current_line');
   // saving the previous line to unhighlight it next steps : 
   this.previousLine = curr_line;
-  console.log(this.previousLine);
 }
 
 /*
@@ -167,15 +167,6 @@ function steps(isNext) {
   var codeMirror = this.codeMirror;
   total = this.ExecPoints.length;
   var curr_i = this.currExecPointNumber; 
-  var ExecutionPoints = this.ExecPoints;
-  var currExecPointObject = ExecutionPoints[curr_i];
-  var curr_line = currExecPointObject.line;
-  if (this.previousLine && this.previousLine != curr_line)
-  {
-    codeMirror.addLineClass(this.previousLine - 1, 'background', 'default');
-  }
-  // clear the page to remove previous exec point data :
-  clear();
   // check which button has been pressed and perform the right operation :
   if (isNext && curr_i < total - 1)
   {
@@ -185,6 +176,18 @@ function steps(isNext) {
   {
     curr_i--;
   }
+  var ExecutionPoints = this.ExecPoints;
+  var currExecPointObject = ExecutionPoints[curr_i];
+  var curr_line = currExecPointObject.line;
+  // unhighlight the previous highlighted line :
+  if (this.previousLine && this.previousLine != curr_line)
+  {
+    codeMirror.addLineClass(this.previousLine - 1, 'background', 'default');
+    console.log("STEPS FUNCTION : previous line : " + this.previousLine);
+    console.log("STEPS FUNCTION : current line : " + curr_line);
+  }
+  // clear the page to remove previous exec point image:
+  clear();
   // Highlight the current line :
   codeMirror.addLineClass(curr_line - 1, 'background', 'current_line');
   // Saving previous line :
