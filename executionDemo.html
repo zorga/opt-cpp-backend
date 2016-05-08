@@ -150,7 +150,7 @@ function initLoop(ExecutionPoints) {
 */
 function displayProgression() {
   total = this.ExecPoints.length - 1;
-  current = this.currExecPointNumber + 1;
+  current = this.currExecPointNumber;
   var toDisplay = "Current Execution Point : " + current.toString() + "/" + total.toString();
   var progression = document.getElementById("progression");
   var text = document.createElement("p");
@@ -164,13 +164,14 @@ function displayProgression() {
 */
 function steps(isNext) {
   total = this.ExecPoints.length;
+  console.log(total);
   var curr_i = this.currExecPointNumber; 
   var ExecutionPoints = this.ExecPoints;
   var currExecPointObject = ExecutionPoints[curr_i];
   // clear the page to remove previous exec point data :
   clear(currExecPointObject.line);
   // check which button has been pressed and perform the right operation :
-  if (isNext && curr_i < total-1)
+  if (isNext && curr_i < total - 1)
     curr_i++;
   else if (!isNext && curr_i > 0)
     curr_i--;
