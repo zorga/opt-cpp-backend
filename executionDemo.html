@@ -22,7 +22,6 @@
   }
   .default {
     background: #ffffff;
-    color: #ffffff;
   }
   img {
     max-width: 70%;
@@ -99,7 +98,6 @@ function getExecPointImage (currExecPointObject, i) {
 * (If there is one)
 */
 function clear() {
-  // delete the displayed image :
   var imageZone = document.getElementById("ExecImages"); 
   var image = document.getElementById("curr_exec_image");
   if (image)
@@ -125,37 +123,39 @@ function displaySourceCode(source) {
 * initialization of the execution loop
 */
 function initLoop() {
-  // clear the page to remove previous exec point image:
   clear();
+
   var codeMirror = this.codeMirror;
-  getExecPointImage(this.ExecPoints[0], 0);
-  // Put the needed info into object to get them in the next steps :
-  this.currExecPointNumber = 0;
-  displayProgression();
   curr_line = this.ExecPoints[0].line;
+  console.log("current : " + curr_line); // ok 
+  console.log("previous : " + this.previousLine); // ok
+
+  getExecPointImage(this.ExecPoints[0], 0);
+
   // "un-highlight" the previous highlighted line :
-  console.log("initloop : previous line : " + this.previousLine);
-  if (this.previousLine && this.previousLine != curr_line)
-  {
-    codeMirror.addLineClass(this.previousLine - 1, 'background', 'default');
-    console.log("INITLOOP FUNCTION : previous line : " + this.previousLine);
-    console.log("INITLOOP FUNCTION : current line : " + curr_line);
-  }
+  if (this.previousLine)
+    if (this.previousLine != curr_line)
+      codeMirror.addLineClass(previousLine - 1, 'background', 'default');
+
   // decrement the line number because the lines begin at '0' in CodeMirror API :
   codeMirror.addLineClass(curr_line - 1, 'background', 'current_line');
-  // saving the previous line to unhighlight it next steps : 
+  codeMirror.setCursor(curr_line);
+
   this.previousLine = curr_line;
+  this.currExecPointNumber = 0;
+
+  displayProgression(0);
 }
 
 /*
 * display the current execution point number under the codeMirror object
 */
-function displayProgression() {
-  total = this.ExecPoints.length - 1;
-  current = this.currExecPointNumber;
+function displayProgression(current) {
+  var total = this.ExecPoints.length - 1;
   var toDisplay = "Current Execution Point : " + current.toString() + "/" + total.toString();
   var progression = document.getElementById("progression");
   var text = document.createElement("p");
+
   text.textContent = toDisplay;
   text.setAttribute("id", "progression");
   progression.parentNode.replaceChild(text, progression);
@@ -166,39 +166,40 @@ function displayProgression() {
 * Navigate through the execution points
 */
 function steps(isNext) {
+  clear();
+
   var codeMirror = this.codeMirror;
-  total = this.ExecPoints.length;
   var curr_i = this.currExecPointNumber; 
-  // check which button has been pressed and perform the right operation :
+  var total = this.ExecPoints.length;
+  var ExecutionPoints = this.ExecPoints;
+
   if (isNext && curr_i < total - 1)
   {
     curr_i++;
   }
+
   else if (!isNext && curr_i > 0)
   {
     curr_i--;
   }
-  var ExecutionPoints = this.ExecPoints;
+
   var currExecPointObject = ExecutionPoints[curr_i];
   var curr_line = currExecPointObject.line;
-  console.log("steps : previous line : " + this.previousLine);
-  // unhighlight the previous highlighted line :
-  if (this.previousLine && this.previousLine != curr_line)
-  {
-    codeMirror.addLineClass(this.previousLine - 1, 'background', 'default');
-    console.log("STEPS FUNCTION : previous line : " + this.previousLine);
-    console.log("STEPS FUNCTION : current line : " + curr_line);
-  }
-  // clear the page to remove previous exec point image:
-  clear();
-  // Highlight the current line :
+
+  console.log("current_line : " + curr_line);
+  console.log("previous line : " + this.previousLine);
+
+  if (this.previousLine)
+    if (this.previousLine != curr_line)
+      codeMirror.addLineClass(this.previousLine - 1, 'background', 'default');
+
   codeMirror.addLineClass(curr_line - 1, 'background', 'current_line');
-  // Saving previous line :
-  this.previousLine = curr_line;
-  // display the right exec point image :
   getExecPointImage(currExecPointObject, curr_i);
+
+  displayProgression(curr_i);
+
+  this.previousLine = curr_line;
   this.currExecPointNumber = curr_i;
-  displayProgression();
 }
 
 /*
