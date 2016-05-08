@@ -56,15 +56,20 @@ function loadTraceFile(callback) {
 /*
 * get the exec point image corresponding to a specific execution point
 * 'currExecPoint' is the currently processed exec point in the trace file
+* This dislay the exec point image and highlight the corresponding line
+* in the code
 */
-function getExecPointImage (currExecPoint) {
-  curr_line_number = currExecPoint[0].line;
-  var filename = "http://localhost/img/exec_point_0.svg";
+function getExecPointImage (currExecPointObject, i) {
+  var server = "http://localhost";
+  var prefix = "/img/exec_point_";
+  var indice = i.toString();
+  var ext = ".svg";
+  var filename = server + prefix + indice + ext;
+  curr_line_number = currExecPointObject.line;
   // Get the image from the server and displays it at the right place
   document.getElementById("ExecImages").appendChild(document.createElement('img')).setAttribute('src', filename);
   // Highlight the current line in CodeMirror element
   var codeMirror = this.codeMirror;
-  console.log(codeMirror);
   codeMirror.addLineClass(curr_line_number, 'background', 'current_line');
 }
 
@@ -81,6 +86,7 @@ function displaySourceCode (source) {
     lineNumbers: true
   }); 
   myCodeMirror.setSize(700, 740);
+  // Put the codeMirror in the object to easy get it elsewhere in the code
   this.codeMirror = myCodeMirror;
 }
 
@@ -96,7 +102,13 @@ function handleJsonObject() {
     var json_object = JSON.parse(response);
     // displaying the source-code by passing the 'code' entry of the trace file
     displaySourceCode(json_object.code);
-    getExecPointImage(json_object.trace);
+    // Getting the amount of execution points in the trace file :
+    var numberOfExecPoints = json_object.trace.length;
+    for (i = 0; i < numberOfExecPoints; i++) {
+      getExecPointImage(json_object.trace[i], i);
+    }
+    // display execution point image and highlight the corresponding line
+    // getExecPointImage(json_object.trace);
   });
 }
 
