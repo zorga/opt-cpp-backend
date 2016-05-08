@@ -22,6 +22,7 @@
   }
   .default {
     background: #ffffff;
+    color: #ffffff;
   }
   img {
     max-width: 70%;
@@ -76,8 +77,8 @@ function loadTraceFile(callback) {
 
 /*
 * get the exec point image corresponding to a specific execution point
-* 'currExecPoint' is the currently processed exec point in the trace file
-* This dislay the exec point image and highlight the corresponding line
+* 'currExecPointObject' is the currently processed exec point in the trace file
+* This function dislays the exec point image and highlight the corresponding line
 * in the code
 */
 function getExecPointImage (currExecPointObject, i) {
@@ -87,11 +88,6 @@ function getExecPointImage (currExecPointObject, i) {
   var ext = ".svg";
   var filename = server + prefix + indice + ext;
   curr_line_number = currExecPointObject.line;
-  /*
-  *  Get the imaga from the server.
-  *  Create an image element out of the downloaded and displays it
-  *  at the right place.
-  */
   image = document.createElement("img");
   image.setAttribute("src", filename);
   image.setAttribute("id", "curr_exec_image");
@@ -103,9 +99,8 @@ function getExecPointImage (currExecPointObject, i) {
 }
 
 /*
-* Removes the images and the line highlightning on the interface
-* This is needed to avoid having all the images and all the accumulated
-* highlighted lines on the same page...
+* Removes the image currently displayed on the page
+* (If there is one)
 */
 function clear() {
   // delete the displayed image :
@@ -113,12 +108,7 @@ function clear() {
   var image = document.getElementById("curr_exec_image");
   if (image)
     imageZone.removeChild(image);
-  // "un-highlight" the current line :
-  //var codeMirror = this.codeMirror;
-  //console.log("clear line number : " + curr_line);
-  //codeMirror.addLineClass(curr_line, 'background', 'default');
 }
-
 
 /*
 * 'source' is the string representing the source code of the C program
@@ -131,7 +121,6 @@ function displaySourceCode(source) {
     readOnly: true,
     lineNumbers: true
   }); 
-  //myCodeMirror.setSize(700, 600);
   // Put the codeMirror in the object to easy get it elsewhere in the code
   this.codeMirror = myCodeMirror;
 }
@@ -141,11 +130,25 @@ function displaySourceCode(source) {
 */
 function initLoop() {
   clear();
+  var codeMirror = this.codeMirror;
+  // "un-highlight" the previous highlighted line :
+  if (this.previousLine)
+  {
+    console.log("initLoop ok : " + this.previousLine);
+    codeMirror.addLineClass(this.previousLine - 1, 'background', 'default');
+  }
+
   getExecPointImage(this.ExecPoints[0], 0);
   // Put the needed info into object to get them in the next steps :
   this.currExecPointNumber = 0;
-  //this.ExecPoints = ExecutionPoints;
   displayProgression();
+  curr_line = this.ExecPoints[0].line;
+  console.log("initLoop : curr_line : " + curr_line);
+  // decrement the line number because the lines begin at '0' in CodeMirror API :
+  codeMirror.addLineClass(curr_line - 1, 'background', 'current_line');
+  // saving the previous line to unhighlight it next steps : 
+  this.previousLine = curr_line;
+  console.log(this.previousLine);
 }
 
 /*
@@ -166,18 +169,39 @@ function displayProgression() {
 * for the 'Next Step' and 'Previous step' buttons
 */
 function steps(isNext) {
+  var codeMirror = this.codeMirror;
   total = this.ExecPoints.length;
-  console.log(total);
   var curr_i = this.currExecPointNumber; 
   var ExecutionPoints = this.ExecPoints;
   var currExecPointObject = ExecutionPoints[curr_i];
+  var curr_line = currExecPointObject.line;
+  if (this.previousLine)
+  {
+    if (this.previousLine == curr_line)
+    {
+      console.log("coucou");
+    }
+    else
+    {
+      console.log("steps ok : " + this.previousLine);
+      codeMirror.addLineClass(this.previousLine - 1, 'background', 'default');
+    }
+  }
   // clear the page to remove previous exec point data :
   clear();
   // check which button has been pressed and perform the right operation :
   if (isNext && curr_i < total - 1)
+  {
     curr_i++;
+  }
   else if (!isNext && curr_i > 0)
+  {
     curr_i--;
+  }
+  // Highlight the current line :
+  codeMirror.addLineClass(curr_line - 1, 'background', 'current_line');
+  // Saving previous line :
+  this.previousLine = curr_line;
   // display the right exec point image :
   getExecPointImage(currExecPointObject, curr_i);
   this.currExecPointNumber = curr_i;
@@ -196,7 +220,7 @@ function handleJsonObject() {
     var json_object = JSON.parse(response);
     // displaying the source-code by passing the 'code' entry of the trace file
     displaySourceCode(json_object.code);
-    // execution loop :
+    // starting execution loop :
     this.ExecPoints = (json_object.trace);
     initLoop();
   });
