@@ -23,13 +23,21 @@
   .default {
     background: #ffffff;
   }
+  img {
+    max-width: 70%;
+    max-height: 70%;
+  }
+  #codeEditor {
+    max-width: 100%;
+    max-height: 100%;
+  }
 </style>
 <!-- end of CSS -->
 
 <!-- Beginning page design -->
 <div id="container" style="width:100%;">
   <div id="left" style="float:left; width:50%;">
-    <p id="codeEditor"></p>
+    <div id="codeEditor"></div>
     <div id="buttonsPanel">
       <center id="c">
         <button onclick="steps(false)">Previous step</button>
@@ -39,7 +47,9 @@
     </div>
   </div>
   <div id="right" style="float:right; width:50%;">
-    <p id="ExecImages"></p>
+    <center>
+      <div id="ExecImages"></div>
+    </center>
   </div>
 <div>
 
@@ -86,8 +96,9 @@ function getExecPointImage (currExecPointObject, i) {
   image.setAttribute("id", "curr_exec_image");
   document.getElementById("ExecImages").appendChild(image);
   // Highlight the current line in CodeMirror element
-  var codeMirror = this.codeMirror;
-  codeMirror.addLineClass(curr_line_number, 'background', 'current_line');
+  //var codeMirror = this.codeMirror;
+  //console.log("Highlight line number : " + curr_line_number);
+  //codeMirror.addLineClass(curr_line_number, 'background', 'current_line');
 }
 
 /*
@@ -95,14 +106,15 @@ function getExecPointImage (currExecPointObject, i) {
 * This is needed to avoid having all the images and all the accumulated
 * highlighted lines on the same page...
 */
-function clear (curr_line) {
+function clear(curr_line) {
   // delete the displayed image :
   var imageZone = document.getElementById("ExecImages"); 
   var image = document.getElementById("curr_exec_image");
   imageZone.removeChild(image);
   // "un-highlight" the current line :
-  var codeMirror = this.codeMirror;
-  codeMirror.addLineClass(curr_line, 'background', 'default');
+  //var codeMirror = this.codeMirror;
+  //console.log("clear line number : " + curr_line);
+  //codeMirror.addLineClass(curr_line, 'background', 'default');
 }
 
 
@@ -117,7 +129,7 @@ function displaySourceCode(source) {
     readOnly: true,
     lineNumbers: true
   }); 
-  myCodeMirror.setSize(700, 600);
+  //myCodeMirror.setSize(700, 600);
   // Put the codeMirror in the object to easy get it elsewhere in the code
   this.codeMirror = myCodeMirror;
 }
@@ -137,8 +149,8 @@ function initLoop(ExecutionPoints) {
 * display the current execution point number under the codeMirror object
 */
 function displayProgression() {
-  total = this.ExecPoints.length;
-  current = this.currExecPointNumber;
+  total = this.ExecPoints.length - 1;
+  current = this.currExecPointNumber + 1;
   var toDisplay = "Current Execution Point : " + current.toString() + "/" + total.toString();
   var progression = document.getElementById("progression");
   var text = document.createElement("p");
@@ -151,14 +163,18 @@ function displayProgression() {
 * for the 'Next Step' and 'Previous step' buttons
 */
 function steps(isNext) {
+  total = this.ExecPoints.length;
   var curr_i = this.currExecPointNumber; 
   var ExecutionPoints = this.ExecPoints;
   var currExecPointObject = ExecutionPoints[curr_i];
+  // clear the page to remove previous exec point data :
   clear(currExecPointObject.line);
-  if (isNext)
+  // check which button has been pressed and perform the right operation :
+  if (isNext && curr_i < total-1)
     curr_i++;
-  else
+  else if (!isNext && curr_i > 0)
     curr_i--;
+  // display the right exec point image :
   getExecPointImage(currExecPointObject, curr_i);
   this.currExecPointNumber = curr_i;
   displayProgression();
