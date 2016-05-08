@@ -8,23 +8,13 @@
 
 <h1>Execution steps browser</h1>
 
-<!-- Include required JS files for code highlighting -->
-<script type="text/javascript" src="/home/nico/coding/js/syntaxhighlighter_3.0.83/scripts/shCore.js"></script>
-<!-- JS file for C and C++ code highlighting -->
-<script type="text/javascript" src="/home/nico/coding/js/syntaxhighlighter_3.0.83/scripts/shBrushCpp.js"></script>
-<!-- Include the core style and default theme for SyntaxHighlighter -->
-<link href="/home/nico/coding/js/syntaxhighlighter_3.0.83/styles/shCore.css" rel="stylesheet" type="text/css" />
-<link href="/home/nico/coding/js/syntaxhighlighter_3.0.83/styles/shThemeDefault.css" rel="stylesheet" type="text/css" />
 <!-- Include the required files for CodeMirror (codemirror.net) -->
 <script src="/home/nico/coding/CodeMirror/lib/codemirror.js"></script>
 <link rel="stylesheet" href="/home/nico/coding/CodeMirror/lib/codemirror.css">
 <script src="/home/nico/coding/CodeMirror/mode/javascript/javascript.js"></script>
+<script src="/home/nico/coding/CodeMirror/mode/clike/clike.js"></script>
 
-<!-- To actually run the highlighter... -->
-<script type="text/javascript">
-  SyntaxHighlighter.all()
-</script>
-
+<!-- Beginning page design -->
 <div id="container" style="width:100%;">
   <div id="left" style="float:left; width:50%;"> Your code. </div>
   <div id="right" style="float:right; width:50%;"> Memory state. </div>
@@ -33,8 +23,11 @@
 <!-- Get and parse the trace file from the web server inside the INGI network -->
 <script type="text/javascript"> 
 
-// Start ajax request from retrieving the trace file from the web server :
-
+/*
+* Download the trace file from the server and parse it
+* Then display the source-code (in the trace file) using the
+* 'handleJsonObject' function with 'displaySourceCode' function
+*/
 function loadTraceFile(callback) {
   var xobj = new XMLHttpRequest();
   xobj.overrideMimeType("application/json");
@@ -52,13 +45,14 @@ function loadTraceFile(callback) {
 * 'source' is the string representing the source code of the C program
 */
 function displaySourceCode (source) {
-  // this display the source code to the page but badly formatted
+  // this display the source code in a beautiful CodeMirror element
   var myCodeMirror = CodeMirror(document.getElementById("left"), {
     value: source,
-    mode: "javascript",
+    mode: "text/x-c",
     readOnly: true,
     lineNumbers: true
   }); 
+  myCodeMirror.setSize(700, 740);
 }
 
 /*
@@ -73,15 +67,7 @@ function handleJsonObject() {
     var json_object = JSON.parse(response);
     // displaying the source-code by passing the 'code' entry of the trace file
     displaySourceCode(json_object.code);
-    // Do something with json_object...
   });
-}
-
-/*
-* It's only a convention because 'main' functions doesn't exist in JS
-*/
-function main () {
-  //TODO
 }
 
 // Calling the 'main' function to start everything !
