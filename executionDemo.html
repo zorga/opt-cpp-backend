@@ -92,10 +92,6 @@ function getExecPointImage (currExecPointObject, i) {
   image.setAttribute("src", filename);
   image.setAttribute("id", "curr_exec_image");
   document.getElementById("ExecImages").appendChild(image);
-  // Highlight the current line in CodeMirror element
-  //var codeMirror = this.codeMirror;
-  //console.log("Highlight line number : " + curr_line_number);
-  //codeMirror.addLineClass(curr_line_number, 'background', 'current_line');
 }
 
 /*
@@ -132,17 +128,16 @@ function initLoop() {
   clear();
   var codeMirror = this.codeMirror;
   // "un-highlight" the previous highlighted line :
-  if (this.previousLine)
-  {
-    console.log("initLoop ok : " + this.previousLine);
-    codeMirror.addLineClass(this.previousLine - 1, 'background', 'default');
-  }
 
   getExecPointImage(this.ExecPoints[0], 0);
   // Put the needed info into object to get them in the next steps :
   this.currExecPointNumber = 0;
   displayProgression();
   curr_line = this.ExecPoints[0].line;
+  if (this.previousLine && this.previousLine != curr_line)
+  {
+    codeMirror.addLineClass(this.previousLine - 1, 'background', 'default');
+  }
   console.log("initLoop : curr_line : " + curr_line);
   // decrement the line number because the lines begin at '0' in CodeMirror API :
   codeMirror.addLineClass(curr_line - 1, 'background', 'current_line');
@@ -175,17 +170,9 @@ function steps(isNext) {
   var ExecutionPoints = this.ExecPoints;
   var currExecPointObject = ExecutionPoints[curr_i];
   var curr_line = currExecPointObject.line;
-  if (this.previousLine)
+  if (this.previousLine && this.previousLine != curr_line)
   {
-    if (this.previousLine == curr_line)
-    {
-      console.log("coucou");
-    }
-    else
-    {
-      console.log("steps ok : " + this.previousLine);
-      codeMirror.addLineClass(this.previousLine - 1, 'background', 'default');
-    }
+    codeMirror.addLineClass(this.previousLine - 1, 'background', 'default');
   }
   // clear the page to remove previous exec point data :
   clear();
