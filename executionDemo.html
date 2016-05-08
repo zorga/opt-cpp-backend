@@ -20,6 +20,9 @@
   .current_line {
     background: #00cc00;
   }
+  .default {
+    background: #ffffff;
+  }
 </style>
 <!-- end of CSS -->
 
@@ -66,11 +69,34 @@ function getExecPointImage (currExecPointObject, i) {
   var ext = ".svg";
   var filename = server + prefix + indice + ext;
   curr_line_number = currExecPointObject.line;
-  // Get the image from the server and displays it at the right place
-  document.getElementById("ExecImages").appendChild(document.createElement('img')).setAttribute('src', filename);
+  /*
+  *  Get the imaga from the server.
+  *  Create an image element out of the downloaded and displays it
+  *  at the right place.
+  */
+  image = document.createElement("img");
+  image.setAttribute("src", filename);
+  image.setAttribute("id", "curr_exec_image");
+  document.getElementById("ExecImages").appendChild(image);
   // Highlight the current line in CodeMirror element
   var codeMirror = this.codeMirror;
   codeMirror.addLineClass(curr_line_number, 'background', 'current_line');
+  clear(curr_line_number);
+}
+
+/*
+* Removes the images and the line highlightning on the interface
+* This is needed to avoid having all the images and all the accumulated
+* highlighted lines on the same page...
+*/
+function clear (curr_line) {
+  // delete the displayed image :
+  var imageZone = document.getElementById("ExecImages"); 
+  var image = document.getElementById("curr_exec_image");
+  imageZone.removeChild(image);
+  // "un-highlight" the current line :
+  var codeMirror = this.codeMirror;
+  codeMirror.addLineClass(curr_line, 'background', 'default');
 }
 
 
