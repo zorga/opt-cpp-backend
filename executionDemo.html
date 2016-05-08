@@ -30,6 +30,13 @@
 <div id="container" style="width:100%;">
   <div id="left" style="float:left; width:50%;">
     <p id="codeEditor"></p>
+    <div id="buttonsPanel">
+      <center id="c">
+        <button onclick="steps(false)">Previous step</button>
+        <button onclick="steps(true);">Next step</button>
+        <p id="progression">Current Execution Point : </p>
+      </center>
+    </div>
   </div>
   <div id="right" style="float:right; width:50%;">
     <p id="ExecImages"></p>
@@ -81,7 +88,6 @@ function getExecPointImage (currExecPointObject, i) {
   // Highlight the current line in CodeMirror element
   var codeMirror = this.codeMirror;
   codeMirror.addLineClass(curr_line_number, 'background', 'current_line');
-  clear(curr_line_number);
 }
 
 /*
@@ -103,7 +109,7 @@ function clear (curr_line) {
 /*
 * 'source' is the string representing the source code of the C program
 */
-function displaySourceCode (source) {
+function displaySourceCode(source) {
   // this display the source code in a beautiful CodeMirror element
   var myCodeMirror = CodeMirror(document.getElementById("codeEditor"), {
     value: source,
@@ -111,9 +117,51 @@ function displaySourceCode (source) {
     readOnly: true,
     lineNumbers: true
   }); 
-  myCodeMirror.setSize(700, 740);
+  myCodeMirror.setSize(700, 600);
   // Put the codeMirror in the object to easy get it elsewhere in the code
   this.codeMirror = myCodeMirror;
+}
+
+/*
+* initialization of the execution loop
+*/
+function initLoop(ExecutionPoints) {
+  getExecPointImage(ExecutionPoints[0], 0);
+  // Put the needed info into object to get them in the next steps :
+  this.currExecPointNumber = 0;
+  this.ExecPoints = ExecutionPoints;
+  displayProgression();
+}
+
+/*
+* display the current execution point number under the codeMirror object
+*/
+function displayProgression() {
+  total = this.ExecPoints.length;
+  current = this.currExecPointNumber;
+  var toDisplay = "Current Execution Point : " + current.toString() + "/" + total.toString();
+  var progression = document.getElementById("progression");
+  var text = document.createElement("p");
+  text.textContent = toDisplay;
+  text.setAttribute("id", "progression");
+  progression.parentNode.replaceChild(text, progression);
+}
+
+/*
+* for the 'Next Step' and 'Previous step' buttons
+*/
+function steps(isNext) {
+  var curr_i = this.currExecPointNumber; 
+  var ExecutionPoints = this.ExecPoints;
+  var currExecPointObject = ExecutionPoints[curr_i];
+  clear(currExecPointObject.line);
+  if (isNext)
+    curr_i++;
+  else
+    curr_i--;
+  getExecPointImage(currExecPointObject, curr_i);
+  this.currExecPointNumber = curr_i;
+  displayProgression();
 }
 
 /*
@@ -128,13 +176,8 @@ function handleJsonObject() {
     var json_object = JSON.parse(response);
     // displaying the source-code by passing the 'code' entry of the trace file
     displaySourceCode(json_object.code);
-    // Getting the amount of execution points in the trace file :
-    var numberOfExecPoints = json_object.trace.length;
-    for (i = 0; i < numberOfExecPoints; i++) {
-      getExecPointImage(json_object.trace[i], i);
-    }
-    // display execution point image and highlight the corresponding line
-    // getExecPointImage(json_object.trace);
+    // execution loop :
+    initLoop(json_object.trace);
   });
 }
 
