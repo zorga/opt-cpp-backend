@@ -14,10 +14,23 @@
 <script src="/home/nico/coding/CodeMirror/mode/javascript/javascript.js"></script>
 <script src="/home/nico/coding/CodeMirror/mode/clike/clike.js"></script>
 
+<!-- Since the CSS is small, directly put it in the html file -->
+<!-- The following style code is for highlight the current line of the execution -->
+<style>
+  .current_line {
+    background: #00cc00;
+  }
+</style>
+<!-- end of CSS -->
+
 <!-- Beginning page design -->
 <div id="container" style="width:100%;">
-  <div id="left" style="float:left; width:50%;"> Your code. </div>
-  <div id="right" style="float:right; width:50%;"> Memory state. </div>
+  <div id="left" style="float:left; width:50%;">
+    <p id="codeEditor"></p>
+  </div>
+  <div id="right" style="float:right; width:50%;">
+    <p id="ExecImages"></p>
+  </div>
 <div>
 
 <!-- Get and parse the trace file from the web server inside the INGI network -->
@@ -40,19 +53,35 @@ function loadTraceFile(callback) {
   xobj.send();
 }
 
+/*
+* get the exec point image corresponding to a specific execution point
+* 'currExecPoint' is the currently processed exec point in the trace file
+*/
+function getExecPointImage (currExecPoint) {
+  curr_line_number = currExecPoint[0].line;
+  var filename = "http://localhost/img/exec_point_0.svg";
+  // Get the image from the server and displays it at the right place
+  document.getElementById("ExecImages").appendChild(document.createElement('img')).setAttribute('src', filename);
+  // Highlight the current line in CodeMirror element
+  var codeMirror = this.codeMirror;
+  console.log(codeMirror);
+  codeMirror.addLineClass(curr_line_number, 'background', 'current_line');
+}
+
 
 /*
 * 'source' is the string representing the source code of the C program
 */
 function displaySourceCode (source) {
   // this display the source code in a beautiful CodeMirror element
-  var myCodeMirror = CodeMirror(document.getElementById("left"), {
+  var myCodeMirror = CodeMirror(document.getElementById("codeEditor"), {
     value: source,
     mode: "text/x-c",
     readOnly: true,
     lineNumbers: true
   }); 
   myCodeMirror.setSize(700, 740);
+  this.codeMirror = myCodeMirror;
 }
 
 /*
@@ -67,6 +96,7 @@ function handleJsonObject() {
     var json_object = JSON.parse(response);
     // displaying the source-code by passing the 'code' entry of the trace file
     displaySourceCode(json_object.code);
+    getExecPointImage(json_object.trace);
   });
 }
 
