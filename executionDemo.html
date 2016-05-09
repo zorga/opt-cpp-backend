@@ -68,7 +68,7 @@ function loadTraceFile(callback) {
   // retrieving files from local web-server :
   //xobj.open("GET", "http://localhost/thesis_LinkedList.trace", true);
   // retrieving files from INGI web-server (only works with Firefox) :
-  xobj.open("GET", "http://localhost:9000/thesis_LinkedList.trace", true);
+  xobj.open("GET", "http://127.0.0.1:9000/thesis_LinkedList.trace", true);
   xobj.onreadystatechange = function() {
     if (xobj.readyState == 4 && xobj.status == "200") {
       callback(xobj.responseText);
@@ -84,11 +84,11 @@ function loadTraceFile(callback) {
 * in the code
 */
 function getExecPointImage (currExecPointObject, i) {
-  var server = "http://localhost:9000";
-  var prefix = "./execution_images/exec_point_";
+  var server = "http://127.0.0.1:9000";
+  var prefix = "http://127.0.0.1/img/exec_point_";
   var indice = i.toString();
-  var ext = ".svg";
-  var path = server + prefix + indice + ext;
+  var ext = ".png";
+  var path = prefix + indice + ext;
   displayImage(path, "curr_exec_image", "ExecImages");
   /*
   var image = document.createElement("img");
