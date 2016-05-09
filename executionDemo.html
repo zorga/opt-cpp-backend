@@ -140,17 +140,20 @@ function initLoop() {
 
   var codeMirror = this.codeMirror;
   curr_line = this.ExecPoints[0].line;
-  console.log("current : " + curr_line); // ok 
-  console.log("previous : " + this.previousLine); // ok
+  console.log("current line : " + curr_line); // ok 
+  console.log("previous line : " + this.previousLine); // ok
 
   getExecPointImage(this.ExecPoints[0], 0);
 
   // "un-highlight" the previous highlighted line :
-  if (this.previousLine)
-    if (this.previousLine != curr_line)
-      codeMirror.addLineClass(previousLine - 1, 'background', 'default');
+  if (this.previousLine && this.previousLine != curr_line)
+  {
+    codeMirror.removeLineClass(curr_line - 1, 'background', 'current_line');
+    codeMirror.addLineClass(previousLine - 1, 'background', 'default');
+  }
 
   // decrement the line number because the lines begin at '0' in CodeMirror API :
+  codeMirror.removeLineClass(curr_line - 1, 'background', 'default');
   codeMirror.addLineClass(curr_line - 1, 'background', 'current_line');
   codeMirror.setCursor(curr_line);
 
@@ -203,9 +206,12 @@ function steps(isNext) {
   console.log("previous line : " + this.previousLine);
 
   if (this.previousLine)
-    if (this.previousLine != curr_line)
-      codeMirror.addLineClass(this.previousLine - 1, 'background', 'default');
+  {
+    codeMirror.removeLineClass(this.previousLine - 1, 'background', 'current_line');
+    codeMirror.addLineClass(this.previousLine - 1, 'background', 'default');
+  }
 
+  codeMirror.removeLineClass(curr_line - 1, 'background', 'default');
   codeMirror.addLineClass(curr_line - 1, 'background', 'current_line');
   getExecPointImage(currExecPointObject, curr_i);
 
