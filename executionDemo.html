@@ -90,12 +90,6 @@ function getExecPointImage (currExecPointObject, i) {
   var ext = ".png";
   var path = prefix + indice + ext;
   displayImage(path, "curr_exec_image", "ExecImages");
-  /*
-  var image = document.createElement("img");
-  image.setAttribute("src", filename);
-  image.setAttribute("id", "curr_exec_image");
-  document.getElementById("ExecImages").appendChild(image);
-  */
 }
 
 function displayImage(src, id, parentId)
@@ -140,8 +134,6 @@ function initLoop() {
 
   var codeMirror = this.codeMirror;
   curr_line = this.ExecPoints[0].line;
-  console.log("current line : " + curr_line); // ok 
-  console.log("previous line : " + this.previousLine); // ok
 
   getExecPointImage(this.ExecPoints[0], 0);
 
@@ -201,9 +193,6 @@ function steps(isNext) {
 
   var currExecPointObject = ExecutionPoints[curr_i];
   var curr_line = currExecPointObject.line;
-
-  console.log("current_line : " + curr_line);
-  console.log("previous line : " + this.previousLine);
 
   if (this.previousLine)
   {
