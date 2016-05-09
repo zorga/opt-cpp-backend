@@ -4,7 +4,6 @@
 
 int main (int argc, char** argv)
 {
-  //node_t* head = init (18);
   node_t* head = malloc (sizeof (node_t));
   head->data = 18;
   head->next = NULL;
