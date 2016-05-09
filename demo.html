@@ -9,10 +9,10 @@
 <h1>Execution steps browser</h1>
 
 <!-- Include the required files for CodeMirror (codemirror.net) -->
-<script src="/home/nico/coding/CodeMirror/lib/codemirror.js"></script>
-<link rel="stylesheet" href="/home/nico/coding/CodeMirror/lib/codemirror.css">
-<script src="/home/nico/coding/CodeMirror/mode/javascript/javascript.js"></script>
-<script src="/home/nico/coding/CodeMirror/mode/clike/clike.js"></script>
+<script src="./CodeMirror/lib/codemirror.js"></script>
+<link rel="stylesheet" href="./CodeMirror/lib/codemirror.css">
+<script src="./CodeMirror/mode/javascript/javascript.js"></script>
+<script src="./CodeMirror/mode/clike/clike.js"></script>
 
 <!-- Since the CSS is small, directly put it in the html file -->
 <!-- The following style code is for highlight the current line of the execution -->
@@ -65,10 +65,7 @@
 function loadTraceFile(callback) {
   var xobj = new XMLHttpRequest();
   xobj.overrideMimeType("application/json");
-  // retrieving files from local web-server :
-  //xobj.open("GET", "http://localhost/thesis_LinkedList.trace", true);
-  // retrieving files from INGI web-server (only works with Firefox) :
-  xobj.open("GET", "http://localhost:9000/thesis_LinkedList.trace", true);
+  xobj.open("GET", "http://130.104.78.197/thesis_LinkedList.trace", true);
   xobj.onreadystatechange = function() {
     if (xobj.readyState == 4 && xobj.status == "200") {
       callback(xobj.responseText);
@@ -84,26 +81,15 @@ function loadTraceFile(callback) {
 * in the code
 */
 function getExecPointImage (currExecPointObject, i) {
-  var server = "http://localhost:9000";
-  var prefix = "./execution_images/exec_point_";
+  var prefix = "http://130.104.78.197/execution_images/exec_point_";
   var indice = i.toString();
-  var ext = ".svg";
-  var path = server + prefix + indice + ext;
-  displayImage(path, "curr_exec_image", "ExecImages");
-  /*
+  var ext = ".png";
+  var filename = prefix + indice + ext;
+  console.log(filename);
   var image = document.createElement("img");
   image.setAttribute("src", filename);
   image.setAttribute("id", "curr_exec_image");
   document.getElementById("ExecImages").appendChild(image);
-  */
-}
-
-function displayImage(src, id, parentId)
-{
-  var img = document.createElement("img");
-  img.src = src;
-  img.id = id;
-  document.getElementById(parentId).appendChild(img);
 }
 
 /*

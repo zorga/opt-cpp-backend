@@ -266,6 +266,6 @@ def output_graph(graph, name):
 
   """
   graph.layout(prog="dot")
-  graph.draw("img/" + name + ".svg")
+  graph.draw("img/" + name + ".png")
   graph.write("dots/" + name + ".dot")
   
