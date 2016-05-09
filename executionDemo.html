@@ -125,6 +125,16 @@ function displaySourceCode(source) {
   // Put the codeMirror in the object to easy get it elsewhere in the code
   this.codeMirror = myCodeMirror;
 }
+/*
+* Used to always show the current line
+* from : http://stackoverflow.com/questions/10575343/codemirror-is-it-possible-to-scroll-to-a-line-so-that-it-is-in-the-middle-of-w
+*/
+function jumpToLine(i, codeMirror)
+{
+  var t = codeMirror.charCoords({line: i, ch: 0}, "local").top;
+  var middleHeight = codeMirror.getScrollerElement().offsetHeight / 2;
+  codeMirror.scrollTo(null, t - middleHeight - 5);
+}
 
 /*
 * initialization of the execution loop
@@ -136,6 +146,7 @@ function initLoop() {
   curr_line = this.ExecPoints[0].line;
 
   getExecPointImage(this.ExecPoints[0], 0);
+  jumpToLine(curr_line, codeMirror);
 
   // "un-highlight" the previous highlighted line :
   if (this.previousLine && this.previousLine != curr_line)
@@ -202,6 +213,7 @@ function steps(isNext) {
 
   codeMirror.removeLineClass(curr_line - 1, 'background', 'default');
   codeMirror.addLineClass(curr_line - 1, 'background', 'current_line');
+  jumpToLine(curr_line, codeMirror);
   getExecPointImage(currExecPointObject, curr_i);
 
   displayProgression(curr_i);

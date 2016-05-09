@@ -103,6 +103,17 @@ function clear() {
 }
 
 /*
+* Used to always show the current line
+* from : http://stackoverflow.com/questions/10575343/codemirror-is-it-possible-to-scroll-to-a-line-so-that-it-is-in-the-middle-of-w
+*/
+function jumpToLine(i, codeMirror)
+{
+  var t = codeMirror.charCoords({line: i, ch: 0}, "local").top;
+  var middleHeight = codeMirror.getScrollerElement().offsetHeight / 2;
+  codeMirror.scrollTo(null, t - middleHeight - 5);
+}
+
+/*
 * 'source' is the string representing the source code of the C program
 */
 function displaySourceCode(source) {
@@ -127,6 +138,7 @@ function initLoop() {
   curr_line = this.ExecPoints[0].line;
 
   getExecPointImage(this.ExecPoints[0], 0);
+  jumpToLine(curr_line - 1, codeMirror);
 
   // "un-highlight" the previous highlighted line :
   if (this.previousLine && this.previousLine != curr_line)
@@ -193,6 +205,7 @@ function steps(isNext) {
 
   codeMirror.removeLineClass(curr_line - 1, 'background', 'default');
   codeMirror.addLineClass(curr_line - 1, 'background', 'current_line');
+  jumpToLine(curr_line - 1, codeMirror);
   getExecPointImage(currExecPointObject, curr_i);
 
   displayProgression(curr_i);
