@@ -221,7 +221,8 @@ int push (node_t** headRef, int newData)
     return -1;
 
   newHead->data = newData;
-  newHead->next = *headRef;
+  //newHead->next = *headRef;
+  newHead->next = newData;
   // changing a Pointer using a Reference Pointer (Pointer to Pointer)
   *headRef = newHead;
   return 0;

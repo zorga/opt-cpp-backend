@@ -238,7 +238,7 @@ def setEvents(ExecutionPoints, success):
       finalExecPoints[-1]['event'] = 'exception'
       finalExecPoints[-1]['exception_msg'] = 'code crash !'
 
-    # The 'finalExecPoints' list should have the same size 'ExecutionPoints' list
+    # The 'finalExecPoints' list should not have the same size 'ExecutionPoints' list
     assert len(finalExecPoints) <= len(ExecutionPoints)
 
   return finalExecPoints
