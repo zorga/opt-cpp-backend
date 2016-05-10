@@ -65,7 +65,7 @@
 function loadTraceFile(callback) {
   var xobj = new XMLHttpRequest();
   xobj.overrideMimeType("application/json");
-  xobj.open("GET", "http://130.104.78.197/thesis_LinkedList.trace", true);
+  xobj.open("GET", "http://127.0.0.1/thesis_LinkedList.trace", true);
   xobj.onreadystatechange = function() {
     if (xobj.readyState == 4 && xobj.status == "200") {
       callback(xobj.responseText);
@@ -81,7 +81,7 @@ function loadTraceFile(callback) {
 * in the code
 */
 function getExecPointImage (currExecPointObject, i) {
-  var prefix = "http://130.104.78.197/execution_images/exec_point_";
+  var prefix = "./execution_images/exec_point_";
   var indice = i.toString();
   var ext = ".png";
   var filename = prefix + indice + ext;
