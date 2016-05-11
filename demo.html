@@ -65,7 +65,9 @@
 function loadTraceFile(callback) {
   var xobj = new XMLHttpRequest();
   xobj.overrideMimeType("application/json");
-  xobj.open("GET", "http://127.0.0.1/thesis_LinkedList.trace", true);
+  //xobj.open("GET", "http://127.0.0.1/thesis_LinkedList.trace", true);
+  // Works on INGInious room and on laptop via tunnel :
+  xobj.open("GET", "./thesis_LinkedList.trace", true);
   xobj.onreadystatechange = function() {
     if (xobj.readyState == 4 && xobj.status == "200") {
       callback(xobj.responseText);
