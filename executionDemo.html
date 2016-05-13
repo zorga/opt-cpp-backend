@@ -43,7 +43,7 @@
         <button onclick="initLoop()">Reset Execution</button>
         <button onclick="steps(false)">Previous step</button>
         <button onclick="steps(true);">Next step</button>
-        <input type="text" id="step"><button onclick="showIthStep(step);">Go</button>
+        <input type="text" id="step" size="4"><button onclick="showIthStep(step);">Go</button>
         <p id="progression">Current Execution Point : </p>
       </center>
       <p>This feedback let you observe how the states of the heap and stack frames evolve during the execution of the program in which your solution has been implanted. The highlighted line is always the next line that will be executed. The images correspond to the memory state before the execution of the next line.</p>
@@ -198,7 +198,7 @@ function showIthStep(i)
   console.log(i);
   if (i > ExecutionPoints.length - 1)
     i = ExecutionPoints.length - 1;
-  else
+  else if (i < 0)
     i = 0;
 
   var currExecPointObject = ExecutionPoints[i];
