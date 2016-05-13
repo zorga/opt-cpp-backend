@@ -43,6 +43,7 @@
         <button onclick="initLoop()">Reset Execution</button>
         <button onclick="steps(false)">Previous step</button>
         <button onclick="steps(true);">Next step</button>
+        <input type="text" id="step"><button onclick="showIthStep(step);">Go</button>
         <p id="progression">Current Execution Point : </p>
       </center>
       <p>This feedback let you observe how the states of the heap and stack frames evolve during the execution of the program in which your solution has been implanted. The highlighted line is always the next line that will be executed. The images correspond to the memory state before the execution of the next line.</p>
@@ -74,7 +75,7 @@ function loadTraceFile(callback) {
   // retrieving files from local web-server :
   //xobj.open("GET", "http://localhost/thesis_LinkedList.trace", true);
   // retrieving files from INGI web-server (only works with Firefox) :
-  xobj.open("GET", "http://127.0.0.1/insert.trace", true);
+  xobj.open("GET", "http://127.0.0.1/thesis_LinkedList.trace", true);
   xobj.onreadystatechange = function() {
     if (xobj.readyState == 4 && xobj.status == "200") {
       callback(xobj.responseText);
@@ -90,8 +91,7 @@ function loadTraceFile(callback) {
 * in the code
 */
 function getExecPointImage (currExecPointObject, i) {
-  var server = "http://127.0.0.1:9000";
-  var prefix = "http://127.0.0.1/img/exec_point_";
+  var prefix = "./img/exec_point_";
   var indice = i.toString();
   var ext = ".png";
   var path = prefix + indice + ext;
@@ -184,6 +184,38 @@ function displayProgression(current) {
   text.textContent = toDisplay;
   text.setAttribute("id", "progression");
   progression.parentNode.replaceChild(text, progression);
+}
+
+/*
+* Show the I-th execution step
+*/
+function showIthStep(i)
+{
+  clear();
+  var ExecutionPoints = this.ExecPoints;
+
+  var i = document.getElementById("step").value;
+  console.log(i);
+  if (i > ExecutionPoints.length - 1)
+    i = ExecutionPoints.length - 1;
+  else
+    i = 0;
+
+  var currExecPointObject = ExecutionPoints[i];
+  var curr_line = currExecPointObject.line;
+
+  if (this.previousLine)
+  {
+    codeMirror.removeLineClass(this.previousLine - 1, 'background', 'current_line');
+    codeMirror.addLineClass(this.previousLine - 1, 'background', 'default');
+  }
+  codeMirror.removeLineClass(curr_line - 1, 'background', 'default');
+  codeMirror.addLineClass(curr_line - 1, 'background', 'current_line');
+  jumpToLine(curr_line, codeMirror);
+  getExecPointImage(currExecPointObject, i);
+  displayProgression(i);
+  this.previousLine = curr_line;
+  this.currExecPointNumber = i;
 }
 
 /*
