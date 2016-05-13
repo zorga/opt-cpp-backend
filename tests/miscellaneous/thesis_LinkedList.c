@@ -8,6 +8,7 @@ int main (int argc, char** argv)
   head->data = 18;
   head->next = NULL;
   push (&head, 17);
+  InsertSort(&head);
   free_list (&head);
   return 0;
 }
