@@ -8,6 +8,8 @@ struct node {
   node_t* next;
 };
 
+int addTail (node_t* head, int newData);
+
 void RemoveDuplicates (node_t* head);
 
 void FrontBackSplit (node_t* source, node_t** frontRef, node_t** backRef);

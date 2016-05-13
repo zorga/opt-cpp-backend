@@ -8,6 +8,10 @@ int main (int argc, char** argv)
   head->data = 18;
   head->next = NULL;
   push (&head, 17);
+  push (&head, 4);
+  addTail(head, 43);
+  addTail(head, 989);
+  printList(head);
   InsertSort(&head);
   free_list (&head);
   return 0;
@@ -225,6 +229,23 @@ int push (node_t** headRef, int newData)
   newHead->next = *headRef;
   // changing a Pointer using a Reference Pointer (Pointer to Pointer)
   *headRef = newHead;
+  return 0;
+}
+
+int addTail (node_t* head, int newData)
+{
+  node_t* tail = (node_t*) malloc (sizeof(node_t));
+  if (!tail)
+    return -1;
+
+  tail->data = newData;
+  node_t* curr = head;
+  while (curr->next)
+    curr = curr->next;
+
+  curr->next = tail;
+  tail->next = NULL;
+  
   return 0;
 }
 
