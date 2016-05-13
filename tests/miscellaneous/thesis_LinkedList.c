@@ -8,6 +8,7 @@ int main (int argc, char** argv)
   head->data = 18;
   head->next = NULL;
   push (&head, 17);
+  InsertSort(&head);
   free_list (&head);
   return 0;
 }
@@ -221,8 +222,7 @@ int push (node_t** headRef, int newData)
     return -1;
 
   newHead->data = newData;
-  //newHead->next = *headRef;
-  newHead->next = newData;
+  newHead->next = *headRef;
   // changing a Pointer using a Reference Pointer (Pointer to Pointer)
   *headRef = newHead;
   return 0;

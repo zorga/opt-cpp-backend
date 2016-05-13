@@ -45,6 +45,12 @@
         <button onclick="steps(true);">Next step</button>
         <p id="progression">Current Execution Point : </p>
       </center>
+      <p>This feedback let you observe how the states of the heap and stack frames evolve during the execution of the program in which your solution has been implanted. The highlighted line is always the next line that will be executed. The images correspond to the memory state before the execution of the next line.</p>
+      <p><b>Reminder</b> : 
+      <ul>
+        <li>The stack frames are sections of memory (on the stack) given to functions when they are called during the exuction of the C program. They contain the function arguments and local variables.</li>
+        <li>The heap contains the global variables and the dynamically allocated variables (using <b>malloc())</b></li>
+      </ul>
     </div>
   </div>
   <div id="right" style="float:right; width:50%;">
@@ -68,7 +74,7 @@ function loadTraceFile(callback) {
   // retrieving files from local web-server :
   //xobj.open("GET", "http://localhost/thesis_LinkedList.trace", true);
   // retrieving files from INGI web-server (only works with Firefox) :
-  xobj.open("GET", "http://127.0.0.1/error1.trace", true);
+  xobj.open("GET", "http://127.0.0.1/insert.trace", true);
   xobj.onreadystatechange = function() {
     if (xobj.readyState == 4 && xobj.status == "200") {
       callback(xobj.responseText);
