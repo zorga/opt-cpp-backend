@@ -10,7 +10,7 @@ all-traces: thesis_LinkedList.trace
 
 %.trace: %.vgtrace ../../vg_to_opt_trace.py
 	#python2.7 ../../vg_to_opt_trace.py --create_jsvar=trace $(basename $<) > $(basename $<).trace || true
-	python2.7 ../../vg_to_opt_trace.py $(basename $<) > $(basename $<).trace || true
+	python2.7 ../../generate_traces.py $(basename $<) > $(basename $<).trace || true
 
 clean:
 	rm -f *.trace *.vgtrace *.out *.o

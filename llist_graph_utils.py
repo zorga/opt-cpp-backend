@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 import sys
 from pygraphviz import *
 from pprint import pprint
@@ -57,7 +58,7 @@ def make_heap_graph(heap, heapG):
     graph object: The heap graph of the current execution point
 
   """
-  prev_node_vi = None
+  prev_node_info = None
   if (len(heap) > 0):
     for k in (sorted(heap.keys(), reverse=True)):
       """
@@ -72,21 +73,25 @@ def make_heap_graph(heap, heapG):
         newNode = heapG.get_node(var_info[0])
         newNode.attr["rankdir"] = "BT"
         newNode.attr["shape"] = "record"
+
         # Composing the node label in an elegant way : 
         l1 = str(var_info[1]) # Struct type
         l2 = " | Data : " + str(var_info[2]) # Data field
-        l3 = " | Addr : \\n " + str(var_info[0]) # Addr field
-        l4 = " | next : " + str(var_info[3]) # Next field
+        l3 = " | <addr> Addr : \\n " + str(var_info[0]) # Addr field
+        l4 = " | <next> next : " + str(var_info[3]) # Next field
         newNode.attr["label"] = l1 + l2 + l3 + l4
-        # Setting the edge with the previous node :
-        if prev_node_vi is not None:
-          heapG.add_edge(str(prev_node_vi[0]), str(var_info[0]), style="filled", label="next")
-        prev_node_vi = var_info
+
+        # Setting the edge with the previous node if there is one:
+        if prev_node_info is not None:
+          if prev_node_info[3] == var_info[0]:
+            heapG.add_edge(str(prev_node_info[0]), str(var_info[0]), headport = "addr", tailport= "next", style = "filled", label="next", color="#3399FF")
+        prev_node_info = var_info
+          
         # If the 'next' field of the current node points to NULL :
         # Last element of the LinkedList
         if var_info[-1] == "NULL":
-          heapG.add_node("NULL")
-          heapG.add_edge(str(var_info[0]), "NULL", style="filled", label="next")
+          heapG.add_node("NULL", shape="box")
+          heapG.add_edge(str(var_info[0]), "NULL", style="filled", tailport = "next", label="next", color="#3399FF")
   else:
     pass
 
@@ -121,10 +126,14 @@ def make_stack_frames_graph(frames, frameG, final_graph):
     # Getting the current frame subgraph to modify its attributes
     current_frame_graph = frameG.get_subgraph(frame_graph_name)
     current_frame_graph.graph_attr["rankdir"] = "TB"
-    current_frame_graph.graph_attr["label"] = str(frame["func_name"]) + " Function"
-    current_frame_graph.graph_attr["color"] = "#FC0404"
+    current_frame_graph.graph_attr["rank"] = "same"
+    current_frame_graph.graph_attr["label"] = "Function : " + str(frame["func_name"])
+    if (frame["func_name"] == "main"):
+      current_frame_graph.graph_attr["color"] = "#3399FF"
+    else:
+      current_frame_graph.graph_attr["color"] = "#FC0404"
 
-    # Dummy node (hack to link the cluster and avoid overlaps) :
+    # Dummy node (hack to link the clusters and avoid overlaps) :
     current_frame_graph.add_node("DUMMY_" + str(frame["func_name"]))
     node_frame = current_frame_graph.get_node("DUMMY_" + str(frame["func_name"]))
     node_frame.attr["shape"] = "point"
@@ -135,36 +144,41 @@ def make_stack_frames_graph(frames, frameG, final_graph):
     frame_vars = json.loads(json_frame_vars, object_pairs_hook = OrderedDict)
 
     # Iterating over the local vars and fill the current frame subgraph
+    # k is the variable name (head, argv, argc, headRef, etc.)
     prev_node_vi = None
     for k in (sorted(frame_vars.keys(), reverse=True)):
       var = frame_vars[k]
       var[:] = [x if x != "<UNINITIALIZED>" else "uninitialized" for x in var]
       var[:] = [x if x != "0x0" else "NULL" for x in var]
 
+      # Appending the function name to the var name to keep var names unique in the
+      # whole graph
+      # backup 'k' in 'name' var to set the right variable name in the final image
+      name = k
+      k = str(k) + "_" + frame["func_name"]
       # Create a new node for the var named "k"
       current_frame_graph.add_node(k)
       currNode = current_frame_graph.get_node(k)
       currNode.attr["rankdir"] = "BT"
       currNode.attr["shape"] = "record"
+
       # Composing the node label in an elegant way
       l1 = "Type : " + str(var[2])
-      l2 = " | Name : " + str(k)
-      l3 = " | Value : " + str(var[3])
+      l2 = " | Name : " + str(name)
+      l3 = " | <val> Value : " + str(var[3])
       l4 = " | Addr : " + str(var[1])
       currNode.attr["label"] = l1 + l2 + l3 + l4
+
       # Adding invisible edges between nodes to avoid overlapping
       if prev_node_vi is not None:
         current_frame_graph.add_edge(str(prev_node_vi), str(k), style="invis")
       prev_node_vi = k
-      # Making the pointer variables, point to their data on the heap :
-      # Only update the head pointer for now, actually
-      if (k == "head" and not str(var[3]) == "uninitialized"):
-        if str(var[3]) == "NULL":
-          heapG = final_graph.get_subgraph("clusterHeap")
-          if "NULL" not in final_graph.nodes():
-            heapG.add_node("NULL")
-        final_graph.add_edge(str(k), str(var[3]), style = "filled")
-            
+
+      # Making the pointer variables, point to their data on the heap once initialized :
+      if (var[2] == "pointer" and not str(var[3]) == "uninitialized"):
+        heapG = final_graph.get_subgraph("clusterHeap")
+        if str(var[3]) in heapG.nodes():
+          final_graph.add_edge(str(k), str(var[3]), tailport = "val", style = "filled")
 
   return frameG
 
@@ -227,6 +241,7 @@ def init_exec_point_graph():
   clusFrame.graph_attr["rankdir"] = "TB"
   clusFrame.graph_attr["color"] = "#7C7E14"
   clusFrame.graph_attr["label"] = "Stack Frames"
+  clusFrame.graph_attr["rank"] = "same"
   #clusFrame.graph_attr["rank"] = "same"
   # Dummy node (hack to link the clusters and avoir overlaps) :
   clusFrame.add_node("DUMMY_FRAME")
@@ -239,6 +254,7 @@ def init_exec_point_graph():
   clusHeap.graph_attr["rankdir"] = "LR"
   clusHeap.graph_attr["color"] = "#FC0404"
   clusHeap.graph_attr["label"] = "Heap"
+  clusHeap.graph_attr["rank"] = "same"
   #clusHeap.graph_attr["rank"] = "same"
   clusHeap.node_attr["fixedsize"] = "False"
   # Dummy node (hack to link the clusters and avoir overlaps) :

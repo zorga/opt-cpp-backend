@@ -30,6 +30,7 @@
 
 # Debug files
 *.dSYM/
+vgcore*
 
 # misc
 .deps
@@ -42,6 +43,7 @@ dots/*
 
 # python
 __pycache__
+*.pyc
 
 # backend
 *.trace

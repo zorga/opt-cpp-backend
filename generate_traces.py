@@ -1,3 +1,4 @@
+#!/bin/python2.7
 # Converts a trace created by the Valgrind C backend to a format that
 # will be used by the frontend to generate the graphs representing the
 # execution of a C program
@@ -356,6 +357,12 @@ def main():
   filtered_execution_points = filterExecPoints();
   final_execution_points = setEvents(filtered_execution_points, success)
   final_execution_points = removeRedundantLines(final_execution_points)
+
+  # Adding an 'ExecutionPointNumber' entry
+  i = 0
+  for ep in final_execution_points:
+    ep['ExecutionPointNumber'] = i 
+    i = i + 1
   
   # Getting the code source of the program in a String variable and adding it in
   # the final trace file

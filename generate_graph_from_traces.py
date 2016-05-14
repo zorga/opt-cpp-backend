@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 # This is the implementation of the application translating the execution
 # trace files to beautiful graphs to be shown to the sinf1252 student on the
 # INGInious platform at UCL
@@ -27,7 +28,7 @@ def main():
   args = parser.parse_args()
   # print an error to stderr and return if the file is not a .trace file :
   if not args.trace_filename.endswith('.trace'):
-    print("Error : need a \".trace\" file !", file = sys.stderr)
+    print >> sys.stderr, "Error : need a \".trace\" file !"
     return
 
   if (args.verbose):
@@ -49,6 +50,7 @@ def main():
       # 'i' will serve for the graph image file name
       build_graph_from (infos, i)
       i = i + 1
+  sys.exit(0)
     
 if __name__ == '__main__':
     main()
