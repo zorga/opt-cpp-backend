@@ -48,6 +48,7 @@ def main():
         print ("Processing exec point number " + str(i))
       infos = get_exec_point_info(exec_point)
       # 'i' will serve for the graph image file name
+      print >> sys.stderr, "Execution point number : " + str(i)
       build_graph_from (infos, i)
       i = i + 1
   sys.exit(0)

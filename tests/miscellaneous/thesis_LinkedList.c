@@ -8,7 +8,9 @@ int main (int argc, char** argv)
   head->data = 18;
   head->next = NULL;
   push (&head, 50);
-  addTail(head, 40);
+  push (&head, 25);
+  push (&head, 89);
+  push (&head, 32);
   free_list (&head);
   return 0;
 }
@@ -235,12 +237,12 @@ int addTail (node_t* head, int newData)
     return -1;
 
   tail->data = newData;
+  tail->next = NULL;
   node_t* curr = head;
   while (curr->next)
     curr = curr->next;
 
   curr->next = tail;
-  tail->next = NULL;
   
   return 0;
 }

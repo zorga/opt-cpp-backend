@@ -83,14 +83,15 @@ def make_heap_graph(heap, heapG):
         # Setting the edge with the previous node if there is one:
         if prev_node_info is not None:
           if prev_node_info[3] == var_info[0]:
-            heapG.add_edge(str(prev_node_info[0]), str(var_info[0]), headport = "addr", tailport= "next", style = "filled", label="next", color="#3399FF")
+            heapG.add_edge(str(prev_node_info[0]), str(var_info[0]), headport = "addr", tailport= "next", style = "filled", label="next", color="#3399FF", penwidth="2")
+            print >> sys.stderr, "prev node : " + str(prev_node_info[0]) + " -> " + "next node : " + str(var_info[0])
         prev_node_info = var_info
           
         # If the 'next' field of the current node points to NULL :
         # Last element of the LinkedList
-        if var_info[-1] == "NULL":
-          heapG.add_node("NULL", shape="box")
-          heapG.add_edge(str(var_info[0]), "NULL", style="filled", tailport = "next", label="next", color="#3399FF")
+#        if var_info[-1] == "NULL":
+#          heapG.add_node("NULL", shape="box")
+#          heapG.add_edge(str(var_info[0]), "NULL", style="filled", tailport = "next", label="next", color="#3399FF")
   else:
     pass
 
@@ -155,7 +156,7 @@ def make_stack_frames_graph(frames, frameG, final_graph):
       # backup 'k' in 'name' var to set the right variable name in the final image
       name = k
       k = str(k) + "_" + frame["func_name"]
-      # Create a new node for the var named "k"
+      # Create a new node for the var named "k" which is unique
       current_frame_graph.add_node(k)
       currNode = current_frame_graph.get_node(k)
       currNode.attr["shape"] = "record"
@@ -164,7 +165,7 @@ def make_stack_frames_graph(frames, frameG, final_graph):
       l1 = "Type : " + str(var[2])
       l2 = " | Name : " + str(name)
       l3 = " | <val> Value : " + str(var[3])
-      l4 = " | Addr : " + str(var[1])
+      l4 = " | <addr> Addr : " + str(var[1])
       currNode.attr["label"] = l1 + l2 + l3 + l4
 
       # Adding invisible edges between nodes to avoid overlapping
@@ -173,10 +174,10 @@ def make_stack_frames_graph(frames, frameG, final_graph):
       prev_node_vi = k
 
       # Making the pointer variables, point to their data on the heap once initialized :
-      if (var[2] == "pointer" and not str(var[3]) == "uninitialized"):
+      if (var[2] == "pointer" and str(var[3]) not in ["uninitialized", "NULL"]):
         heapG = final_graph.get_subgraph("clusterHeap")
         if str(var[3]) in heapG.nodes():
-          final_graph.add_edge(str(k), str(var[3]), tailport = "val", style = "filled")
+          final_graph.add_edge(str(k), str(var[3]), tailport = "val", headport = "addr", style = "filled", weight = "5", penwidth="2")
 
   return frameG
 
