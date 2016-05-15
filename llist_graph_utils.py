@@ -59,6 +59,7 @@ def make_heap_graph(heap, heapG):
 
   """
   prev_node_info = None
+  prev_node_info_list = []
   if (len(heap) > 0):
     for k in (sorted(heap.keys(), reverse=True)):
       """
@@ -80,18 +81,25 @@ def make_heap_graph(heap, heapG):
         l4 = " | <next> next : " + str(var_info[3]) # Next field
         newNode.attr["label"] = l1 + l2 + l3 + l4
 
-        # Setting the edge with the previous node if there is one:
-        if prev_node_info is not None:
-          if prev_node_info[3] == var_info[0]:
-            heapG.add_edge(str(prev_node_info[0]), str(var_info[0]), headport = "addr", tailport= "next", style = "filled", label="next", color="#3399FF", penwidth="2")
-            print >> sys.stderr, "prev node : " + str(prev_node_info[0]) + " -> " + "next node : " + str(var_info[0])
-        prev_node_info = var_info
+        if prev_node_info_list:
+          print >> sys.stderr, "blah"
+          for p in prev_node_info_list:
+            if p[3] == var_info[0]:
+              heapG.add_edge(str(p[0]), str(var_info[0]), headport="addr", tailport="next", style="filled", label="next", color="#3399FF", penwidth="2")
+            elif var_info[3] == p[0]:
+              heapG.add_edge(str(var_info[0]), str(p[0]), headport="addr", tailport="next", style="filled", label="next", color="#3399FF", penwidth="2")
+        prev_node_info_list.append(var_info)
+              
           
-        # If the 'next' field of the current node points to NULL :
-        # Last element of the LinkedList
-#        if var_info[-1] == "NULL":
-#          heapG.add_node("NULL", shape="box")
-#          heapG.add_edge(str(var_info[0]), "NULL", style="filled", tailport = "next", label="next", color="#3399FF")
+
+#        # Setting the edge with the previous node if there is one:
+#        if prev_node_info is not None:
+#          if prev_node_info[3] == var_info[0]:
+#            heapG.add_edge(str(prev_node_info[0]), str(var_info[0]), headport = "addr", tailport= "next", style = "filled", label="next", color="#3399FF", penwidth="2")
+#          elif var_info[3] == prev_node_info[0]:
+#            heapG.add_edge(str(var_info[0]), str(prev_node_info[0]), headport = "addr", tailport = "next", style="filled", label="next", color="#3399FF", penwidth="2")
+#        prev_node_info = var_info
+          
   else:
     pass
 
@@ -252,6 +260,7 @@ def init_exec_point_graph():
   clusHeap.graph_attr["color"] = "#009999"
   clusHeap.graph_attr["label"] = "Heap"
   clusHeap.node_attr["fixedsize"] = "False"
+  clusHeap.graph_attr["concentrate"] = "true"
   # Dummy node (hack to link the clusters and avoir overlaps) :
   clusHeap.add_node("DUMMY_HEAP")
   node_heap = clusHeap.get_node("DUMMY_HEAP")
