@@ -81,8 +81,8 @@ def make_heap_graph(heap, heapG):
         l4 = " | <next> next : " + str(var_info[3]) # Next field
         newNode.attr["label"] = l1 + l2 + l3 + l4
 
+        # Setting the arrows between the nodes in the heap cluster
         if prev_node_info_list:
-          print >> sys.stderr, "blah"
           for p in prev_node_info_list:
             if p[3] == var_info[0]:
               heapG.add_edge(str(p[0]), str(var_info[0]), headport="addr", tailport="next", style="filled", label="next", color="#3399FF", penwidth="2")
@@ -90,16 +90,6 @@ def make_heap_graph(heap, heapG):
               heapG.add_edge(str(var_info[0]), str(p[0]), headport="addr", tailport="next", style="filled", label="next", color="#3399FF", penwidth="2")
         prev_node_info_list.append(var_info)
               
-          
-
-#        # Setting the edge with the previous node if there is one:
-#        if prev_node_info is not None:
-#          if prev_node_info[3] == var_info[0]:
-#            heapG.add_edge(str(prev_node_info[0]), str(var_info[0]), headport = "addr", tailport= "next", style = "filled", label="next", color="#3399FF", penwidth="2")
-#          elif var_info[3] == prev_node_info[0]:
-#            heapG.add_edge(str(var_info[0]), str(prev_node_info[0]), headport = "addr", tailport = "next", style="filled", label="next", color="#3399FF", penwidth="2")
-#        prev_node_info = var_info
-          
   else:
     pass
 

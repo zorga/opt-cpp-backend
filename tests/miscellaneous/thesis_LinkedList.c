@@ -7,11 +7,8 @@ int main (int argc, char** argv)
   node_t* head = malloc (sizeof (node_t));
   head->data = 18;
   head->next = NULL;
-  push (&head, 64);
-  push (&head, 78);
-  addTail (head, 17);
-  addTail (head, 4);
-  InsertSort (&head);
+  push (&head, 18);
+  RemoveDuplicates (head);
   free_list (&head);
   return 0;
 }
