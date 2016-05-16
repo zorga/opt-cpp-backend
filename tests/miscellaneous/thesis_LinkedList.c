@@ -8,7 +8,7 @@ int main (int argc, char** argv)
   head->data = 18;
   head->next = NULL;
   push (&head, 18);
-  RemoveDuplicates (head);
+  push (&head, 78);
   free_list (&head);
   return 0;
 }
