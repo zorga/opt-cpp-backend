@@ -126,10 +126,10 @@ def make_stack_frames_graph(frames, frameG, final_graph):
     current_frame_graph.graph_attr["rankdir"] = "TB"
     current_frame_graph.graph_attr["rank"] = "same"
     current_frame_graph.graph_attr["label"] = "Function : " + str(frame["func_name"])
-    if (frame["func_name"] == "main"):
-      current_frame_graph.graph_attr["color"] = "#3399FF"
+    if (frame["is_highlighted"]):
+      current_frame_graph.graph_attr["color"] = "#00CC00"
     else:
-      current_frame_graph.graph_attr["color"] = "#33CC33"
+      current_frame_graph.graph_attr["color"] = "#0059B3"
 
     # Dummy node (hack to link the clusters and avoid overlaps) :
     current_frame_graph.add_node("DUMMY_" + str(frame["func_name"]))
@@ -235,7 +235,7 @@ def init_exec_point_graph():
   # Defining Frames cluster
   clusFrame = G.add_subgraph(name = "clusterFrames")
   clusFrame.graph_attr["rankdir"] = "LR"
-  clusFrame.graph_attr["color"] = "#FF9900"
+  clusFrame.graph_attr["color"] = "#003366"
   clusFrame.graph_attr["label"] = "Stack Frames"
   #clusFrame.graph_attr["rank"] = "same"
   # Dummy node (hack to link the clusters and avoir overlaps) :
