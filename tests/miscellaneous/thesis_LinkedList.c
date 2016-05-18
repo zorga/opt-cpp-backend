@@ -220,6 +220,10 @@ int push (node_t** headRef, int newData)
   if (!newHead)
     return -1;
 
+  // Error that produces segfault:
+  node_t* new = NULL;
+  new->data = 42;
+
   newHead->data = newData;
   newHead->next = *headRef;
   // changing a Pointer using a Reference Pointer (Pointer to Pointer)

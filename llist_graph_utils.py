@@ -196,15 +196,22 @@ def retrieve_heap_var_info(HeapVar):
   vInfo = []
   if (len(HeapVar) > 2):
     # If the size of the HeapVar list (which is a value in the 'heap' dict, describing
-    # a dynamically allocated variable), is smaller of equals to 2, it means the associated
+    # a dynamically allocated variable), is smaller or equals to 2, it means the associated
     # data have been freed at this point of the execution
     varInfo = HeapVar[2]
+    varType = varInfo[0]
+
+    # The node doesn't belong to a Linked List:
+    if not varType == "C_STRUCT":
+      return None
+
     address = varInfo[1]
     struct_type = varInfo[2]
     data_field = varInfo[3]
     next_field = varInfo[4]
     data_value = data_field[1][3]
     next_value = next_field[1][3]
+
     # Getting the list to return, ready :
     vInfo = [address, struct_type, data_value, next_value]
     vInfo[:] = [x if x != "<UNINITIALIZED>" else "uninitialized" for x in vInfo]

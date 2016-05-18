@@ -238,6 +238,12 @@ def setEvents(ExecutionPoints, success):
     else:
       finalExecPoints[-1]['event'] = 'exception'
       finalExecPoints[-1]['exception_msg'] = 'code crash !'
+    # Hack to handle segmentation fault cases (for INGInious for now) :
+    # If the program doesn't raise a segmentation fault, it would normally
+    # finish its execution with the main function return :
+    if not finalExecPoints[-1]['func_name'] == "main":
+      print >> sys.stderr, finalExecPoints[-1]['func_name']
+      finalExecPoints[-1]['event'] = 'segfault'
 
     # The 'finalExecPoints' list should not have the same size 'ExecutionPoints' list
     assert len(finalExecPoints) <= len(ExecutionPoints)
